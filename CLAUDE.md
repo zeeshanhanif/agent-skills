@@ -6,14 +6,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 A collection of **Agent Skills** following the open `SKILL.md` standard (see https://agentskills.io). There is no application code, build system, test suite, or linter — the deliverable is prompt/instruction content that Claude (or another agent) loads at runtime. "Correctness" here means the instructions are clear, well-scoped, and trigger reliably, not that anything compiles.
 
-Each skill is a top-level directory containing a `SKILL.md` and (optionally) a `references/` folder of supporting guides. Currently the only skill is `software-architecture/`.
+Each skill lives under `skills/` as its own directory containing a `SKILL.md` and (optionally) a `references/` folder of supporting guides. Currently the only skill is `skills/software-architecture/`.
 
 ## Skill anatomy and conventions
+
+The `skills/` directory location matters: it's the flat layout (`skills/<name>/SKILL.md`) the [`skills` CLI](https://www.skills.sh) discovers, which is what makes `npx skills add <repo> --skill <name>` work. Keep skills under `skills/` — moving one to the repo root breaks installability.
 
 A skill directory follows this shape:
 
 ```
-<skill-name>/
+skills/<skill-name>/
 ├── SKILL.md            # required: frontmatter + the workflow the agent follows
 └── references/         # optional: deep-dive guides SKILL.md tells the agent to read on demand
 ```

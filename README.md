@@ -7,7 +7,19 @@ agents that follow the open `SKILL.md` standard).
 
 | Skill | What it does |
 | :---- | :----------- |
-| [`software-architecture`](./software-architecture) | Interviews you about a new application, then produces a right-sized architecture document with C4 diagrams (Mermaid) and Architecture Decision Records. |
+| [`software-architecture`](./skills/software-architecture) | Interviews you about a new application, then produces a right-sized architecture document with C4 diagrams (Mermaid) and Architecture Decision Records. |
+
+## Install
+
+The fastest way, using the [`skills`](https://www.skills.sh) CLI:
+
+```bash
+npx skills add https://github.com/zeeshanhanif/agent-skills --skill software-architecture
+```
+
+This works with Claude Code, Cursor, GitHub Copilot, and other agents the CLI
+supports. See [manual installation for Claude Code](#install-claude-code) below
+if you'd rather copy the skill in by hand.
 
 ---
 
@@ -34,13 +46,17 @@ significant decision (with the options it weighed and why) as an ADR.
 **Outputs** default to a single `docs/architecture.md`; it can also export a `.docx`
 for stakeholders, or split ADRs into a `docs/adr/` log on request.
 
-### Install (Claude Code)
+<a id="install-claude-code"></a>
+### Manual install (Claude Code)
+
+Prefer `npx skills add` (see [Install](#install) above). To copy the skill in by
+hand instead:
 
 **Personal — available in all your projects:**
 ```bash
 mkdir -p ~/.claude/skills
-git clone https://github.com/<your-username>/<your-repo>.git /tmp/claude-skills
-cp -R /tmp/claude-skills/software-architecture ~/.claude/skills/
+git clone https://github.com/zeeshanhanif/agent-skills.git /tmp/claude-skills
+cp -R /tmp/claude-skills/skills/software-architecture ~/.claude/skills/
 # verify: you should see SKILL.md directly inside the folder
 ls ~/.claude/skills/software-architecture/
 ```
@@ -48,7 +64,7 @@ ls ~/.claude/skills/software-architecture/
 **Project-scoped — committed to a specific repo so teammates get it too:**
 ```bash
 mkdir -p .claude/skills
-cp -R /path/to/software-architecture .claude/skills/
+cp -R /path/to/skills/software-architecture .claude/skills/
 git add .claude/skills/software-architecture && git commit -m "Add software-architecture skill"
 ```
 
@@ -76,7 +92,7 @@ Confirm it loaded with `/skills` or by asking "what skills are available?".
 ### What's inside
 
 ```text
-software-architecture/
+skills/software-architecture/
 ├── SKILL.md                        # workflow + triggering
 └── references/
     ├── elicitation-guide.md        # the interview framework
