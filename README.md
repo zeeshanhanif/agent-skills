@@ -11,15 +11,22 @@ agents that follow the open `SKILL.md` standard).
 
 ## Install
 
-The fastest way, using the [`skills`](https://www.skills.sh) CLI:
+**Method 1 — the `skills` CLI (recommended).** One command, and it works across
+Claude Code, Cursor, GitHub Copilot, and other agents the
+[`skills`](https://www.skills.sh) CLI supports:
 
 ```bash
 npx skills add https://github.com/zeeshanhanif/agent-skills --skill software-architecture
 ```
 
-This works with Claude Code, Cursor, GitHub Copilot, and other agents the CLI
-supports. See [manual installation for Claude Code](#install-claude-code) below
-if you'd rather copy the skill in by hand.
+The CLI finds the skill because it lives at `skills/software-architecture/SKILL.md`
+and the `--skill` value matches the `name:` in its frontmatter.
+
+**Method 2 — manual copy (Claude Code).** Prefer this only if you'd rather not use
+the CLI; see [manual installation](#install-claude-code) below.
+
+Once installed, [use it](#use) by describing what you're building or running
+`/software-architecture`.
 
 ---
 
@@ -76,6 +83,7 @@ If `~/.claude/skills/` already existed when your session started, the new skill 
 picked up live. If you just created that directory, restart Claude Code once so it
 starts watching it.
 
+<a id="use"></a>
 ### Use
 
 In a Claude Code session, either let Claude trigger it automatically:

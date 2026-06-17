@@ -24,6 +24,14 @@ skills/<skill-name>/
 - **Progressive disclosure is the core pattern.** `SKILL.md` stays a lean workflow (phases, rules) and explicitly instructs the agent to *read a specific `references/*.md` file* at the moment it's needed, rather than inlining all the detail. When adding depth, add or extend a reference file and point to it from the relevant phase — don't bloat `SKILL.md`.
 - **The README's "What's inside" tree and Skills table must stay in sync** with the actual files. Adding/removing a reference file or a skill means updating `README.md`.
 
+## How people install these skills
+
+Two supported paths, both documented in `README.md` — keep both working when you change layout:
+- **`skills` CLI (primary):** `npx skills add https://github.com/zeeshanhanif/agent-skills --skill <name>`. This resolves against the **pushed GitHub repo**, not the local tree, so layout/frontmatter changes only take effect for users after a push. It depends entirely on the `skills/<name>/SKILL.md` location and the frontmatter `name` matching the `--skill` argument.
+- **Manual copy (Claude Code):** users copy `skills/<name>/` into `~/.claude/skills/` (personal) or `.claude/skills/` (project). The skill must land at `~/.claude/skills/<name>/SKILL.md` — one level too deep silently fails to load.
+
+Any rename of a skill directory or its frontmatter `name`, or a change to the `skills/` location, changes the install command — update the README's Install section and the command examples in lockstep.
+
 ## When editing the `software-architecture` skill
 
 Its governing principle (stated in `SKILL.md`): **architecture is driven by quality attributes and constraints, not by technology** — the workflow enforces *understand → decide → document*, and every tech choice must trace back to a stated requirement. Keep edits aligned with this; don't add guidance that jumps to a stack before eliciting needs.
