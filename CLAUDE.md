@@ -6,11 +6,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 A collection of **Agent Skills** following the open `SKILL.md` standard (see https://agentskills.io). There is no application code, build system, test suite, or linter — the deliverable is prompt/instruction content that Claude (or another agent) loads at runtime. "Correctness" here means the instructions are clear, well-scoped, and trigger reliably, not that anything compiles.
 
-Each skill lives under `skills/` as its own directory containing a `SKILL.md` and (optionally) a `references/` folder of supporting guides. There are currently two skills, designed to run back-to-back in a greenfield design pipeline:
+Each skill lives under `skills/` as its own directory containing a `SKILL.md` and (optionally) a `references/` folder of supporting guides. There are currently three skills, designed to run back-to-back as a greenfield design-to-build pipeline:
 - `skills/software-architecture/` — interviews the user and produces the architecture document (`docs/architecture.md`).
-- `skills/ux-foundations/` — the "architecture of the UI." It **consumes** that architecture document (defaults to reading `docs/architecture.md`) and produces the UX foundations (`docs/ux-foundations.md`).
+- `skills/ux-foundations/` — the "architecture of the UI." It **consumes** the architecture document (defaults to reading `docs/architecture.md`) and produces the UX foundations (`docs/ux-foundations.md`).
+- `skills/implementation-planning/` — the bridge from design to construction. It **consumes both** prior documents (defaults `docs/architecture.md` + `docs/ux-foundations.md`) and produces an executable build plan (`docs/implementation-plan.md`).
 
-The hand-off is a real coupling: `ux-foundations` extracts the UI surfaces, actors, and constraints from the architecture doc's containers/context. Changes to what `software-architecture` emits (surface naming, container vocabulary) can ripple into how `ux-foundations` ingests it.
+The hand-offs are real couplings, not loose suggestions:
+- `ux-foundations` extracts the UI surfaces, actors, and constraints from the architecture doc's containers/context.
+- `implementation-planning` slices vertically by joining the architecture's building blocks/endpoints with the ux-foundations' per-surface **screen inventory** — it needs both to form a slice, which is why `ux-foundations` frames its screen inventory as that hand-off.
+
+So changes to what an upstream skill emits (surface naming, container vocabulary, the screen-inventory shape) can ripple downstream into how the next skill ingests it. Keep the vocabulary consistent across the three when editing any one.
 
 ## Skill anatomy and conventions
 
@@ -59,6 +64,16 @@ The references form a pipeline matching the SKILL's seven phases — keep them m
 - `diagram-guide.md` — sitemaps + user flows as inline Mermaid; **prefer plain `flowchart`/`graph` syntax** for portability, same reliability rationale as the architecture skill's diagram guide.
 
 Note the screen inventory is framed as the hand-off to implementation planning — preserve that framing if you touch the surface-profile or delivery phases.
+
+## When editing the `implementation-planning` skill
+
+Its two governing principles (stated in `SKILL.md`): **slice vertically, never horizontally** — every unit of work cuts through UI, API, domain, and data to deliver something demonstrable, never "build all the tables" — and **make the architecture executable before complete** — build the *walking skeleton* (minimal end-to-end path that proves the system runs and deploys) first, not the easiest feature, then sequence the rest by dependency and risk. It plans the whole app's breadth but only details the first/near slices (**depth-on-demand**, not waterfall); don't add guidance that elaborates the entire backlog upfront. It **stops at the plan** — per-feature detailed design (API contracts, schemas, per-screen design) and code/scaffolding are separate downstream steps.
+
+The references form a pipeline matching the SKILL's eight phases — keep them mutually consistent when changing one:
+- `slicing-guide.md` — decomposition (Phase 3): epics from building blocks, thin vertical feature slices, each mapped to screens + endpoints + flow.
+- `sequencing-guide.md` — walking skeleton (Phase 4) and risk/dependency ordering (Phase 5).
+- `document-template.md` — output structure (Phase 8): the epic/feature breakdown is a **default** section, not an optional add-on; the issue-tracker export is off by default.
+- `diagram-guide.md` — dependency graph as inline Mermaid; **prefer plain `flowchart`/`graph` syntax** for portability, same reliability rationale as the other two skills' diagram guides.
 
 ## Validating changes
 

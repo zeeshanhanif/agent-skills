@@ -9,6 +9,10 @@ agents that follow the open `SKILL.md` standard).
 | :---- | :----------- |
 | [`software-architecture`](./skills/software-architecture) | Interviews you about a new application, then produces a right-sized architecture document with C4 diagrams (Mermaid) and Architecture Decision Records. |
 | [`ux-foundations`](./skills/ux-foundations) | Reads your architecture document, then produces the UX foundations — a shared design core (brand, tokens, accessibility, voice) plus a per-surface profile (IA, navigation, key flows, screen inventory) for each UI surface. |
+| [`implementation-planning`](./skills/implementation-planning) | Reads the architecture and UX-foundations docs and produces a sequenced build plan — epics and vertical feature slices, the walking skeleton, a dependency/risk-ordered sequence, and the first-slice spec. Stops at the plan; detailed design and code are downstream. |
+
+Run back-to-back, they form a greenfield design-to-build pipeline:
+`software-architecture` → `ux-foundations` → `implementation-planning`.
 
 ## Install
 
@@ -168,6 +172,65 @@ skills/ux-foundations/
     ├── surface-profile-guide.md    # per-surface layer: IA, flows, components
     ├── document-template.md        # shared core + one section per surface
     └── diagram-guide.md            # sitemaps + user flows in Mermaid
+```
+
+---
+
+## `implementation-planning`
+
+The bridge from design to construction. It reads the two design-phase documents —
+the architecture and the UX foundations — and **turns them into a sequenced,
+executable build plan** instead of a wish-list. Two principles govern it: **slice
+vertically** (every unit of work cuts through UI, API, domain, and data to deliver
+something demonstrable — never "build all the tables"), and **make the
+architecture executable before complete** (build the *walking skeleton* first, not
+the easiest feature, then sequence the rest by dependency and risk).
+
+**What you get**
+- A brief priorities check for what isn't already in the documents (what "first"
+  should optimize for, any deadline or MVP cut line, team capacity).
+- An **epic + feature breakdown** — thin vertical slices, each mapped to the
+  screens it touches (from ux-foundations) and the building blocks/endpoints it
+  needs (from the architecture).
+- A **walking-skeleton** definition: the minimal end-to-end path that proves the
+  system runs and deploys, with what's real vs. stubbed called out.
+- A **risk- and dependency-ordered sequence** with a Mermaid dependency graph,
+  the **first vertical slice** specified (acceptance criteria, screens,
+  endpoints), and an **engineering-foundations** checklist.
+
+It plans the whole app's breadth but only details what's next — full depth on the
+first/near slices, coarse further out (depth-on-demand, not the waterfall trap).
+
+**Outputs** default to a single `docs/implementation-plan.md`; on request the same
+features can additionally be emitted as paste/import-ready issues (GitHub / Linear
+/ Jira).
+
+> Install with `npx skills add ... --skill implementation-planning`, or copy it in
+> by hand following [Manual install (Claude Code)](#install-claude-code) above
+> (swap `software-architecture` for `implementation-planning`).
+
+### Use
+
+Run it after the architecture and UX foundations are settled — let Claude trigger
+it automatically:
+```text
+Architecture and UX foundations are done — turn them into a build plan.
+```
+or invoke it directly:
+```text
+/implementation-planning
+```
+
+### What's inside
+
+```text
+skills/implementation-planning/
+├── SKILL.md                        # 8-phase workflow + triggering
+└── references/
+    ├── slicing-guide.md            # epics + thin vertical feature slices
+    ├── sequencing-guide.md         # walking skeleton, dependency/risk order
+    ├── document-template.md        # plan structure, right-sizing rules
+    └── diagram-guide.md            # dependency graph in Mermaid
 ```
 
 ---
