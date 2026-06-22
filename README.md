@@ -8,6 +8,7 @@ agents that follow the open `SKILL.md` standard).
 | Skill | What it does |
 | :---- | :----------- |
 | [`software-architecture`](./skills/software-architecture) | Interviews you about a new application, then produces a right-sized architecture document with C4 diagrams (Mermaid) and Architecture Decision Records. |
+| [`ux-foundations`](./skills/ux-foundations) | Reads your architecture document, then produces the UX foundations — a shared design core (brand, tokens, accessibility, voice) plus a per-surface profile (IA, navigation, key flows, screen inventory) for each UI surface. |
 
 ## Install
 
@@ -20,13 +21,14 @@ npx skills add https://github.com/zeeshanhanif/agent-skills --skill software-arc
 ```
 
 The CLI finds the skill because it lives at `skills/software-architecture/SKILL.md`
-and the `--skill` value matches the `name:` in its frontmatter.
+and the `--skill` value matches the `name:` in its frontmatter. Install any other
+skill the same way by swapping the `--skill` value (e.g. `--skill ux-foundations`).
 
 **Method 2 — manual copy (Claude Code).** Prefer this only if you'd rather not use
 the CLI; see [manual installation](#install-claude-code) below.
 
-Once installed, [use it](#use) by describing what you're building or running
-`/software-architecture`.
+Once installed, [use it](#use) by describing what you're building or running the
+skill's slash command (e.g. `/software-architecture`).
 
 ---
 
@@ -108,6 +110,64 @@ skills/software-architecture/
     ├── document-template.md        # arc42-based, right-sizing rules
     ├── diagram-guide.md            # C4 + Mermaid, validated examples
     └── adr-template.md             # decision-record format + example
+```
+
+---
+
+## `ux-foundations`
+
+The "architecture of the UI" — the design-phase sibling to
+`software-architecture`. It reads your finalized architecture document, then
+**derives the structure and design language of the UI** instead of jumping to
+pixel-perfect screens. The governing idea: **one shared core, defined once, plus
+a per-surface layer for each interface**, so a multi-surface product (admin
+portal, website, mobile app) feels like one thing without flattening the
+differences between surfaces.
+
+**What you get**
+- A short interview for what the architecture doesn't cover (brand, voice,
+  accessibility bar, visual direction, per-surface users and device targets) —
+  inferred aggressively from the architecture, with defaults you can accept in a
+  word.
+- A **shared design core** defined once: brand and voice, **design tokens**
+  (color, typography, spacing, radius, iconography), the accessibility standard,
+  and cross-surface interaction principles.
+- A **per-surface profile** for each UI surface: its users and jobs, information
+  architecture and navigation, key user flows, a screen/page inventory, and the
+  surface-specific components and token overrides it needs.
+- **Sitemaps and user flows** embedded as Mermaid, so the whole thing is one
+  portable artifact that renders on GitHub.
+
+**Outputs** default to a single `docs/ux-foundations.md`; on request it can also
+emit a real design-tokens file (`tokens.css` / `tokens.json`) or one or two
+anchor screen mockups to settle the visual direction.
+
+> Install with `npx skills add ... --skill ux-foundations`, or copy it in by hand
+> following [Manual install (Claude Code)](#install-claude-code) above (swap
+> `software-architecture` for `ux-foundations`).
+
+### Use
+
+Run it after the architecture is settled — let Claude trigger it automatically:
+```text
+The architecture's done — help me set up the UX foundations and design system.
+```
+or invoke it directly:
+```text
+/ux-foundations
+```
+
+### What's inside
+
+```text
+skills/ux-foundations/
+├── SKILL.md                        # 7-phase workflow + triggering
+└── references/
+    ├── elicitation-guide.md        # UX interview, infer from architecture first
+    ├── design-system-guide.md      # the shared core: tokens, a11y, voice
+    ├── surface-profile-guide.md    # per-surface layer: IA, flows, components
+    ├── document-template.md        # shared core + one section per surface
+    └── diagram-guide.md            # sitemaps + user flows in Mermaid
 ```
 
 ---

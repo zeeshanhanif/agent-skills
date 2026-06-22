@@ -6,7 +6,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 A collection of **Agent Skills** following the open `SKILL.md` standard (see https://agentskills.io). There is no application code, build system, test suite, or linter — the deliverable is prompt/instruction content that Claude (or another agent) loads at runtime. "Correctness" here means the instructions are clear, well-scoped, and trigger reliably, not that anything compiles.
 
-Each skill lives under `skills/` as its own directory containing a `SKILL.md` and (optionally) a `references/` folder of supporting guides. Currently the only skill is `skills/software-architecture/`.
+Each skill lives under `skills/` as its own directory containing a `SKILL.md` and (optionally) a `references/` folder of supporting guides. There are currently two skills, designed to run back-to-back in a greenfield design pipeline:
+- `skills/software-architecture/` — interviews the user and produces the architecture document (`docs/architecture.md`).
+- `skills/ux-foundations/` — the "architecture of the UI." It **consumes** that architecture document (defaults to reading `docs/architecture.md`) and produces the UX foundations (`docs/ux-foundations.md`).
+
+The hand-off is a real coupling: `ux-foundations` extracts the UI surfaces, actors, and constraints from the architecture doc's containers/context. Changes to what `software-architecture` emits (surface naming, container vocabulary) can ripple into how `ux-foundations` ingests it.
 
 ## Skill anatomy and conventions
 
@@ -42,6 +46,19 @@ The references form a pipeline matching the SKILL's five phases — keep them mu
 - `document-template.md` — arc42-based output, with sections tagged `[essential]` vs `[scale]` for right-sizing (Phase 3).
 - `diagram-guide.md` — C4 model framing, rendered as inline Mermaid; **prefer plain `flowchart`/`graph` syntax over experimental Mermaid C4 syntax** for portability (Phase 3).
 - `adr-template.md` — one ADR per significant (costly-to-reverse) decision (Phase 4).
+
+## When editing the `ux-foundations` skill
+
+Its governing principle (stated in `SKILL.md`): **one shared core, defined once, plus a per-surface layer for each interface** — a single design language (brand, tokens, accessibility, voice) spans every UI surface so the product feels like one thing, while each surface (admin portal, website, mobile app) gets its own profile because its users, navigation, and components genuinely differ. Keep edits aligned with this; don't collapse it into a single monolith or let surfaces drift into independent design systems. It stays at the **system/spec level** — it deliberately does *not* produce pixel-perfect screens or frontend component code.
+
+The references form a pipeline matching the SKILL's seven phases — keep them mutually consistent when changing one:
+- `elicitation-guide.md` — the UX interview (Phase 2): only what the architecture doesn't already cover; infer from the architecture first.
+- `design-system-guide.md` — the shared core (Phase 3): design tokens, accessibility standard, voice, cross-surface interaction principles.
+- `surface-profile-guide.md` — the per-surface layer (Phase 4): users/jobs, IA + navigation, key flows, screen inventory, surface-specific components.
+- `document-template.md` — output structure (Phase 6): shared core plus one section per surface, right-sized.
+- `diagram-guide.md` — sitemaps + user flows as inline Mermaid; **prefer plain `flowchart`/`graph` syntax** for portability, same reliability rationale as the architecture skill's diagram guide.
+
+Note the screen inventory is framed as the hand-off to implementation planning — preserve that framing if you touch the surface-profile or delivery phases.
 
 ## Validating changes
 
