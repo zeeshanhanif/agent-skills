@@ -7,12 +7,13 @@ agents that follow the open `SKILL.md` standard).
 
 | Skill | What it does |
 | :---- | :----------- |
+| [`requirements-engineering`](./skills/requirements-engineering) | The first SDLC step. Through an exhaustive, area-by-area interview it specifies the complete requirements, then produces a structured SRS (IEEE 29148 lineage), a use-case document, and a traceability matrix — in both markdown and Word. Checkpoints so long sessions can resume. |
 | [`software-architecture`](./skills/software-architecture) | Interviews you about a new application, then produces a right-sized architecture document with C4 diagrams (Mermaid) and Architecture Decision Records. |
 | [`ux-foundations`](./skills/ux-foundations) | Reads your architecture document, then produces the UX foundations — a shared design core (brand, tokens, accessibility, voice) plus a per-surface profile (IA, navigation, key flows, screen inventory) for each UI surface. |
 | [`implementation-planning`](./skills/implementation-planning) | Reads the architecture and UX-foundations docs and produces a sequenced build plan — epics and vertical feature slices, the walking skeleton, a dependency/risk-ordered sequence, and the first-slice spec. Stops at the plan; detailed design and code are downstream. |
 
-Run back-to-back, they form a greenfield design-to-build pipeline:
-`software-architecture` → `ux-foundations` → `implementation-planning`.
+Run back-to-back, they form a greenfield requirements-to-build pipeline:
+`requirements-engineering` → `software-architecture` → `ux-foundations` → `implementation-planning`.
 
 ## Install
 
@@ -33,6 +34,67 @@ the CLI; see [manual installation](#install-claude-code) below.
 
 Once installed, [use it](#use) by describing what you're building or running the
 skill's slash command (e.g. `/software-architecture`).
+
+---
+
+## `requirements-engineering`
+
+The very front of the SDLC — it runs **before** architecture and UX, and owns the
+problem space comprehensively. Instead of transcribing what you mention, it
+**proactively enumerates the standard sub-requirements** for each capability area
+and has you confirm, extend, or trim them: "user authentication" is never one line
+— it expands into sign-up, sign-in, email verification, forgot/reset password,
+logout, session expiry, lockout, rate limiting, and so on. The output is a formal,
+traditional specification (numbered, uniquely-identified, testable requirements),
+not an agile backlog.
+
+**What you get**
+- An exhaustive, area-by-area interview driven by a requirement catalog that also
+  prompts the commonly-forgotten areas (audit logging, account deletion, rate
+  limiting, admin/back-office) and walks the ISO 25010 quality model for
+  **measurable** non-functional requirements.
+- A structured **SRS** (ISO/IEC/IEEE 29148 / IEEE 830 lineage) as `docs/srs.md` —
+  the single source of truth the downstream skills read — plus a formal
+  `docs/srs.docx`.
+- A separate **use-case document** (detailed textual specs + a Mermaid use-case
+  diagram) as `docs/use-cases.md` and `docs/use-cases.docx`.
+- A **requirements traceability matrix** (`docs/rtm.md`) linking every requirement
+  ID to its source and the use cases that exercise it.
+
+It **checkpoints incrementally** (`docs/.requirements-progress.md`) and resumes
+after an interruption, because a full requirements interview is long. Epic/feature
+slicing is deliberately deferred to `implementation-planning`; design decisions to
+the design-phase skills.
+
+> Install with `npx skills add ... --skill requirements-engineering`, or copy it in
+> by hand following [Manual install (Claude Code)](#install-claude-code) below
+> (swap `software-architecture` for `requirements-engineering`).
+
+### Use
+
+Run it at project kickoff, before any design — let Claude trigger it automatically:
+```text
+I'm kicking off a new project — help me gather and write up the requirements.
+```
+or invoke it directly:
+```text
+/requirements-engineering
+```
+
+### What's inside
+
+```text
+skills/requirements-engineering/
+├── SKILL.md                        # 8-phase workflow + triggering, checkpointed
+└── references/
+    ├── elicitation-guide.md        # the area-by-area interview
+    ├── requirement-catalog.md      # the enumeration engine (FR areas + ISO 25010 NFRs)
+    ├── use-case-guide.md           # deriving + specifying use cases
+    ├── rtm-guide.md                # building the traceability matrix
+    ├── srs-template.md             # IEEE 29148-lineage SRS structure
+    ├── checkpointing.md            # incremental save + resume protocol
+    └── docx-generation.md          # rendering the SRS + use cases to Word
+```
 
 ---
 

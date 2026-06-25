@@ -6,16 +6,18 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 A collection of **Agent Skills** following the open `SKILL.md` standard (see https://agentskills.io). There is no application code, build system, test suite, or linter — the deliverable is prompt/instruction content that Claude (or another agent) loads at runtime. "Correctness" here means the instructions are clear, well-scoped, and trigger reliably, not that anything compiles.
 
-Each skill lives under `skills/` as its own directory containing a `SKILL.md` and (optionally) a `references/` folder of supporting guides. There are currently three skills, designed to run back-to-back as a greenfield design-to-build pipeline:
+Each skill lives under `skills/` as its own directory containing a `SKILL.md` and (optionally) a `references/` folder of supporting guides. There are currently four skills, designed to run back-to-back as a greenfield requirements-to-build pipeline:
+- `skills/requirements-engineering/` — the first SDLC step, upstream of design. Elicits the complete requirements and produces the SRS (`docs/srs.md` + `docs/srs.docx`), a use-case document (`docs/use-cases.md` + `.docx`), and a traceability matrix (`docs/rtm.md`). It has **no upstream document** — it elicits from the user.
 - `skills/software-architecture/` — interviews the user and produces the architecture document (`docs/architecture.md`).
 - `skills/ux-foundations/` — the "architecture of the UI." It **consumes** the architecture document (defaults to reading `docs/architecture.md`) and produces the UX foundations (`docs/ux-foundations.md`).
-- `skills/implementation-planning/` — the bridge from design to construction. It **consumes both** prior documents (defaults `docs/architecture.md` + `docs/ux-foundations.md`) and produces an executable build plan (`docs/implementation-plan.md`).
+- `skills/implementation-planning/` — the bridge from design to construction. It **consumes both** prior design documents (defaults `docs/architecture.md` + `docs/ux-foundations.md`) and produces an executable build plan (`docs/implementation-plan.md`).
 
 The hand-offs are real couplings, not loose suggestions:
+- `requirements-engineering` emits **two primary documents**, not one: `docs/srs.md` (the requirement source of truth — NFRs, personas/user classes, constraints) **and** `docs/use-cases.md` (detailed use-case specs + a Mermaid use-case diagram, traced back to the FRs), plus the `docs/rtm.md` traceability matrix linking them. The SRS is the requirement spine; the use-case document carries the actor/flow detail that maps naturally onto ux-foundations' key flows and implementation-planning's vertical slices — treat both as downstream inputs, not srs.md alone. It defers epic/feature slicing to `implementation-planning` and design decisions to the design skills. **Note an existing gap:** the three downstream skills were written first and do *not* yet read `srs.md` or `use-cases.md` — they default to their own inputs (`architecture.md`, `ux-foundations.md`) and still elicit via interview. Wiring them to ingest the SRS and use cases is an open follow-up; keep this in mind when editing any of them.
 - `ux-foundations` extracts the UI surfaces, actors, and constraints from the architecture doc's containers/context.
 - `implementation-planning` slices vertically by joining the architecture's building blocks/endpoints with the ux-foundations' per-surface **screen inventory** — it needs both to form a slice, which is why `ux-foundations` frames its screen inventory as that hand-off.
 
-So changes to what an upstream skill emits (surface naming, container vocabulary, the screen-inventory shape) can ripple downstream into how the next skill ingests it. Keep the vocabulary consistent across the three when editing any one.
+So changes to what an upstream skill emits (requirement IDs/vocabulary, surface naming, container vocabulary, the screen-inventory shape) can ripple downstream into how the next skill ingests it. Keep the vocabulary consistent across the four when editing any one.
 
 ## Skill anatomy and conventions
 
@@ -40,6 +42,23 @@ Two supported paths, both documented in `README.md` — keep both working when y
 - **Manual copy (Claude Code):** users copy `skills/<name>/` into `~/.claude/skills/` (personal) or `.claude/skills/` (project). The skill must land at `~/.claude/skills/<name>/SKILL.md` — one level too deep silently fails to load.
 
 Any rename of a skill directory or its frontmatter `name`, or a change to the `skills/` location, changes the install command — update the README's Install section and the command examples in lockstep.
+
+## When editing the `requirements-engineering` skill
+
+Its two governing principles (stated in `SKILL.md`): **exhaustive enumeration, not transcription** — when a capability area comes up, propose the full set of standard sub-requirements (auth → sign-up, sign-in, verification, forgot/reset, logout, session expiry, lockout, rate limiting…) and have the user confirm/extend/trim, rather than recording only what they mention — and **structured and traditional** — a formal SRS in the ISO/IEC/IEEE 29148 (IEEE 830) lineage with numbered, uniquely-identified, testable requirements, *not* an agile backlog/user stories. Epic/feature slicing is deliberately deferred downstream to `implementation-planning`; this skill owns the problem space.
+
+Two things make this skill structurally different from the other three:
+- **It checkpoints and resumes.** A full requirements interview is long, so it writes finalized areas straight into `docs/srs.md` and tracks progress in `docs/.requirements-progress.md` (a working file, not a deliverable). Phase 0 is always a resume check — never silently restart captured work. Preserve this if you touch the phases.
+- **It emits Word, not just markdown.** Markdown sources (`srs.md`, `use-cases.md`) are the checkpointed source of truth; the `.docx` files are generated **last** (Phase 7) from the finalized markdown, so they never need checkpointing.
+
+The references support the SKILL's eight phases (more references than the other skills — keep them mutually consistent when changing one):
+- `elicitation-guide.md` — the area-by-area functional interview (Phase 2).
+- `requirement-catalog.md` — the enumeration engine: standard FR sub-requirements per area (incl. commonly-forgotten areas) and the ISO 25010-organized NFR catalog for **measurable** non-functional requirements (Phases 2–3).
+- `use-case-guide.md` — deriving/specifying use cases + the Mermaid use-case diagram (Phase 5).
+- `rtm-guide.md` — assembling the traceability matrix from the stable requirement IDs (Phase 6).
+- `srs-template.md` — IEEE 29148-lineage SRS structure (the output spine).
+- `checkpointing.md` — the incremental-save/resume protocol (Phase 0).
+- `docx-generation.md` — rendering finalized markdown to Word (Phase 7) via Pandoc (primary), with a `python-docx` fallback.
 
 ## When editing the `software-architecture` skill
 
