@@ -24,12 +24,12 @@ A markdown table, one row per requirement (functional and non-functional):
 > Source: docs/srs.md, docs/use-cases.md · Last updated: <date>
 > Design and Test columns are placeholders, filled in downstream phases.
 
-| Req ID | Requirement (short) | Priority | Source | Use case(s) | Design ref | Test ref |
-| :----- | :------------------ | :------- | :----- | :---------- | :--------- | :------- |
-| FR-AUTH-001 | Register with email/password | Must | Stakeholder interview | UC-001 | _TBD_ | _TBD_ |
-| FR-AUTH-002 | Verification email on registration | Must | Stakeholder interview | UC-001, UC-002 | _TBD_ | _TBD_ |
-| NFR-SEC-001 | Encryption in transit & at rest | Must | Compliance (GDPR) | — | _TBD_ | _TBD_ |
-| … | … | … | … | … | … | … |
+| Req ID | Requirement (short) | Priority | Status | Source | Use case(s) | Design ref | Test ref |
+| :----- | :------------------ | :------- | :----- | :----- | :---------- | :--------- | :------- |
+| FR-AUTH-001 | Register with email/password | Must | Active | Stakeholder interview | UC-001 | _TBD_ | _TBD_ |
+| FR-AUTH-002 | Verification email on registration | Must | Active | Stakeholder interview | UC-001, UC-002 | _TBD_ | _TBD_ |
+| NFR-SEC-001 | Encryption in transit & at rest | Must | Active | Compliance (GDPR) | — | _TBD_ | _TBD_ |
+| … | … | … | … | … | … | … | … |
 ```
 
 ## Rules
@@ -37,6 +37,9 @@ A markdown table, one row per requirement (functional and non-functional):
 - **Every requirement ID appears exactly once** as a row. If a functional
   requirement has no use case, flag it — either it needs one, or it's a system
   requirement (many NFRs legitimately have no use case; mark "—").
+- **Status** is `Active` by default; amendments set removed requirements to
+  `Removed`/`Deprecated` here too (the row stays, matching the SRS) so
+  traceability survives removal — see `change-management.md`.
 - **Keep the short description short** — the SRS holds the full statement; the RTM
   is an index, not a copy.
 - **Design and Test columns stay as `_TBD_`** at this stage. They exist so the

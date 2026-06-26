@@ -7,7 +7,7 @@ agents that follow the open `SKILL.md` standard).
 
 | Skill | What it does |
 | :---- | :----------- |
-| [`requirements-engineering`](./skills/requirements-engineering) | The first SDLC step. Through an exhaustive, area-by-area interview it specifies the complete requirements, then produces a structured SRS (IEEE 29148 lineage), a use-case document, and a traceability matrix — in both markdown and Word. Checkpoints so long sessions can resume. |
+| [`requirements-engineering`](./skills/requirements-engineering) | The first SDLC step. Through an exhaustive, area-by-area interview it specifies the complete requirements, then produces a structured SRS (IEEE 29148 lineage), a use-case document, and a traceability matrix — in both markdown and Word. Checkpoints so long sessions can resume, and later amends a finalized SRS with stable, never-recycled IDs. |
 | [`software-architecture`](./skills/software-architecture) | Interviews you about a new application, then produces a right-sized architecture document with C4 diagrams (Mermaid) and Architecture Decision Records. |
 | [`ux-foundations`](./skills/ux-foundations) | Reads your architecture document, then produces the UX foundations — a shared design core (brand, tokens, accessibility, voice) plus a per-surface profile (IA, navigation, key flows, screen inventory) for each UI surface. |
 | [`implementation-planning`](./skills/implementation-planning) | Reads the architecture and UX-foundations docs and produces a sequenced build plan — epics and vertical feature slices, the walking skeleton, a dependency/risk-ordered sequence, and the first-slice spec. Stops at the plan; detailed design and code are downstream. |
@@ -66,6 +66,19 @@ after an interruption, because a full requirements interview is long. Epic/featu
 slicing is deliberately deferred to `implementation-planning`; design decisions to
 the design-phase skills.
 
+**It also amends a finalized SRS.** Beyond initial authoring, the skill detects on
+startup whether to start fresh, resume an interrupted interview, or **amend** an
+existing finalized spec — no flag needed, inferred from what's on disk plus your
+plain-language intent ("add a requirement", "update FR-AUTH-007", "remove…"), and
+it confirms before touching a finalized SRS rather than guessing. Amendments follow
+one cardinal rule — **requirement IDs are immutable and never recycled**: adds take
+the next free ID, modifies keep the ID, and removals are *tombstoned*
+(`Deprecated`/`Removed`, kept in place) instead of deleted or renumbered, so
+traceability holds. Each change bumps the SRS version with a revision-history entry,
+propagates to the affected use cases and the RTM, regenerates the Word files, and
+emits a **cross-skill impact note** flagging which downstream documents
+(architecture, UX, plan) referenced the changed IDs.
+
 > Install with `npx skills add ... --skill requirements-engineering`, or copy it in
 > by hand following [Manual install (Claude Code)](#install-claude-code) below
 > (swap `software-architecture` for `requirements-engineering`).
@@ -80,19 +93,25 @@ or invoke it directly:
 ```text
 /requirements-engineering
 ```
+Later, to change an existing spec, just say what you want — it picks up the
+finalized SRS and switches to amendment mode:
+```text
+Add a "sign in with Google" requirement and remove FR-AUTH-009.
+```
 
 ### What's inside
 
 ```text
 skills/requirements-engineering/
-├── SKILL.md                        # 8-phase workflow + triggering, checkpointed
+├── SKILL.md                        # authoring + amendment workflow, checkpointed
 └── references/
     ├── elicitation-guide.md        # the area-by-area interview
     ├── requirement-catalog.md      # the enumeration engine (FR areas + ISO 25010 NFRs)
     ├── use-case-guide.md           # deriving + specifying use cases
     ├── rtm-guide.md                # building the traceability matrix
     ├── srs-template.md             # IEEE 29148-lineage SRS structure
-    ├── checkpointing.md            # incremental save + resume protocol
+    ├── checkpointing.md            # incremental save, resume + mode detection
+    ├── change-management.md        # amending a finalized SRS (stable IDs, tombstones)
     └── docx-generation.md          # rendering the SRS + use cases to Word
 ```
 

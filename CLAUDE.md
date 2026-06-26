@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 A collection of **Agent Skills** following the open `SKILL.md` standard (see https://agentskills.io). There is no application code, build system, test suite, or linter — the deliverable is prompt/instruction content that Claude (or another agent) loads at runtime. "Correctness" here means the instructions are clear, well-scoped, and trigger reliably, not that anything compiles.
 
 Each skill lives under `skills/` as its own directory containing a `SKILL.md` and (optionally) a `references/` folder of supporting guides. There are currently four skills, designed to run back-to-back as a greenfield requirements-to-build pipeline:
-- `skills/requirements-engineering/` — the first SDLC step, upstream of design. Elicits the complete requirements and produces the SRS (`docs/srs.md` + `docs/srs.docx`), a use-case document (`docs/use-cases.md` + `.docx`), and a traceability matrix (`docs/rtm.md`). It has **no upstream document** — it elicits from the user.
+- `skills/requirements-engineering/` — the first SDLC step, upstream of design. Elicits the complete requirements and produces the SRS (`docs/srs.md` + `docs/srs.docx`), a use-case document (`docs/use-cases.md` + `.docx`), and a traceability matrix (`docs/rtm.md`). It has **no upstream document** — it elicits from the user. It also **amends** a finalized SRS (add/modify/remove with stable, never-recycled IDs), so it owns the spec across its whole lifecycle, not just first authoring.
 - `skills/software-architecture/` — interviews the user and produces the architecture document (`docs/architecture.md`).
 - `skills/ux-foundations/` — the "architecture of the UI." It **consumes** the architecture document (defaults to reading `docs/architecture.md`) and produces the UX foundations (`docs/ux-foundations.md`).
 - `skills/implementation-planning/` — the bridge from design to construction. It **consumes both** prior design documents (defaults `docs/architecture.md` + `docs/ux-foundations.md`) and produces an executable build plan (`docs/implementation-plan.md`).
@@ -47,17 +47,23 @@ Any rename of a skill directory or its frontmatter `name`, or a change to the `s
 
 Its two governing principles (stated in `SKILL.md`): **exhaustive enumeration, not transcription** — when a capability area comes up, propose the full set of standard sub-requirements (auth → sign-up, sign-in, verification, forgot/reset, logout, session expiry, lockout, rate limiting…) and have the user confirm/extend/trim, rather than recording only what they mention — and **structured and traditional** — a formal SRS in the ISO/IEC/IEEE 29148 (IEEE 830) lineage with numbered, uniquely-identified, testable requirements, *not* an agile backlog/user stories. Epic/feature slicing is deliberately deferred downstream to `implementation-planning`; this skill owns the problem space.
 
-Two things make this skill structurally different from the other three:
-- **It checkpoints and resumes.** A full requirements interview is long, so it writes finalized areas straight into `docs/srs.md` and tracks progress in `docs/.requirements-progress.md` (a working file, not a deliverable). Phase 0 is always a resume check — never silently restart captured work. Preserve this if you touch the phases.
+Three things make this skill structurally different from the other three:
+- **It checkpoints and resumes.** A full requirements interview is long, so it writes finalized areas straight into `docs/srs.md` and tracks progress in `docs/.requirements-progress.md` (a working file, not a deliverable). Preserve this if you touch the phases.
 - **It emits Word, not just markdown.** Markdown sources (`srs.md`, `use-cases.md`) are the checkpointed source of truth; the `.docx` files are generated **last** (Phase 7) from the finalized markdown, so they never need checkpointing.
+- **It edits its own output after finalization (amendment mode).** It's not a one-shot generator — a finalized SRS can be changed, so the skill is both author and maintainer of the spec. This is what the next bullet's mode detection and Phase A exist for.
 
-The references support the SKILL's eight phases (more references than the other skills — keep them mutually consistent when changing one):
+**Phase 0 is three-way mode detection, not just a resume check** — keep this intact if you touch the phases. From disk state plus the user's plain-language intent (no flag), it picks **fresh** (no SRS/tracker), **resume** (tracker has pending areas), or **amendment** (a *finalized* SRS exists and the user wants to change requirements). Two firm rules baked in: **resume beats amend** (finish an interrupted interview before taking new change requests), and **confirm-before-acting** when an SRS exists and intent is ambiguous — the expensive failure is clobbering or duplicating a finalized SRS. Finalization is recorded in the tracker (Phase 8); that flag is what later distinguishes amendment from resume.
+
+**Phase A (amendment) has one cardinal rule: requirement IDs are immutable and never recycled** — everything downstream references them. Adds take the next free ID, modifies keep the ID, and removals are **tombstoned** (`Deprecated`/`Removed`, row kept) rather than deleted/renumbered. Every amendment bumps the SRS version + revision-history entry, propagates to the affected use cases and the RTM, regenerates the `.docx` files, and emits a **cross-skill impact note** naming which downstream docs referenced the changed IDs. That impact note is the skill's answer to the open gap above: it can't edit `architecture.md`/`ux-foundations.md`/`implementation-plan.md`, but it flags them for review/re-run.
+
+The references support the SKILL's phases (more references than the other skills — keep them mutually consistent when changing one):
 - `elicitation-guide.md` — the area-by-area functional interview (Phase 2).
 - `requirement-catalog.md` — the enumeration engine: standard FR sub-requirements per area (incl. commonly-forgotten areas) and the ISO 25010-organized NFR catalog for **measurable** non-functional requirements (Phases 2–3).
 - `use-case-guide.md` — deriving/specifying use cases + the Mermaid use-case diagram (Phase 5).
-- `rtm-guide.md` — assembling the traceability matrix from the stable requirement IDs (Phase 6).
-- `srs-template.md` — IEEE 29148-lineage SRS structure (the output spine).
-- `checkpointing.md` — the incremental-save/resume protocol (Phase 0).
+- `rtm-guide.md` — assembling the traceability matrix from the stable requirement IDs; carries a Status column so tombstoned requirements stay traceable (Phase 6).
+- `srs-template.md` — IEEE 29148-lineage SRS structure (the output spine); includes a Revision History section and per-requirement Status/Finalized state.
+- `checkpointing.md` — incremental-save/resume **and** the three-mode detection + `FINALIZED` status logic (Phase 0).
+- `change-management.md` — the amendment protocol: ID-immutability cardinal rule, add/modify/remove handling, propagation, cross-skill impact note (Phase A).
 - `docx-generation.md` — rendering finalized markdown to Word (Phase 7) via Pandoc (primary), with a `python-docx` fallback.
 
 ## When editing the `software-architecture` skill

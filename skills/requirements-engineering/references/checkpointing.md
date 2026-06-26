@@ -17,6 +17,7 @@ would be noise). Suggested format:
 # Requirements Progress
 
 > Session source of truth. Statuses: pending | in-progress | done
+> SRS status: in-progress | FINALIZED   (set to FINALIZED at Phase 8)
 > Last updated: <timestamp>
 
 ## Phase 1 — Frame & scope
@@ -66,17 +67,24 @@ complete. That way the document is always well-formed, just partially populated.
 
 ## Resuming (Phase 0)
 
-On every invocation, before doing anything else:
+On every invocation, before doing anything else, check for
+`docs/.requirements-progress.md` and `docs/srs.md`, then branch on the **three
+modes** (the SKILL.md Phase 0 is authoritative; this is the file-level view):
 
-1. Check for `docs/.requirements-progress.md` and `docs/srs.md`.
-2. **If neither exists:** this is a fresh start. Create the progress tracker and
-   the SRS skeleton, then begin Phase 1.
-3. **If they exist:** read both. Summarize for the user concisely — what's
-   captured (areas + counts) and what's pending — and confirm before continuing.
-   Resume at the first `pending` or `in-progress` area. Re-read the relevant
-   finalized content only as needed (the tracker's ID ranges tell you where
-   numbering left off). **Do not restart completed areas or renumber existing
-   requirements.**
+1. **Neither exists → fresh start.** Create the progress tracker (SRS status
+   `in-progress`) and the SRS skeleton, then begin Phase 1.
+2. **Tracker has pending/in-progress areas → resume.** Read both, summarize what's
+   captured (areas + counts) and what's pending, confirm, and resume at the first
+   `pending`/`in-progress` area. Re-read finalized content only as needed (the ID
+   ranges tell you where numbering left off). **Do not restart completed areas or
+   renumber existing requirements.**
+3. **SRS status `FINALIZED` (no pending areas) → amendment.** The interview is
+   complete; the user is changing requirements. Hand off to `change-management.md`
+   (SKILL.md Phase A). Resume always beats amend: if any area is still pending,
+   treat it as case 2 and finish first.
+
+When the SRS exists and the user's intent is ambiguous, summarize what's on disk
+and ask whether to resume/amend/start new — never silently restart.
 
 ## Honest limits
 
