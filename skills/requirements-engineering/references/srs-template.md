@@ -16,7 +16,15 @@ Use this structure:
 ```markdown
 # Software Requirements Specification: <System Name>
 
-> Version: <n> · Status: Draft | Reviewed | Approved · Last updated: <date>
+> Version: <n> · Status: Draft | Reviewed | Approved | Finalized · Last updated: <date>
+
+## Revision History
+*(One row per version. Seeded at finalization; appended on every amendment — see
+`change-management.md`.)*
+
+| Version | Date | Author | Changes |
+| :------ | :--- | :----- | :------ |
+| 1.0 | <date> | <name> | Initial finalized specification. |
 
 ## 1. Introduction
 ### 1.1 Purpose
@@ -54,14 +62,16 @@ Organized by capability area. Each area is a subsection; each requirement has a
 unique ID, a testable "shall" statement, a priority, and supporting rules. Use a
 table per area:
 
-| ID | Requirement | Priority | Notes / rules |
-| :-- | :---------- | :------- | :------------ |
-| FR-AUTH-001 | The system shall allow a visitor to register with email and password. | Must | Email must be unique; password policy per NFR-SEC-003. |
-| FR-AUTH-002 | The system shall send a verification email on registration. | Must | Link expires in 24h. |
-| … | … | … | … |
+| ID | Requirement | Priority | Status | Notes / rules |
+| :-- | :---------- | :------- | :----- | :------------ |
+| FR-AUTH-001 | The system shall allow a visitor to register with email and password. | Must | Active | Email must be unique; password policy per NFR-SEC-003. |
+| FR-AUTH-002 | The system shall send a verification email on registration. | Must | Active | Link expires in 24h. |
+| … | … | … | … | … |
 
 Repeat a subsection (3.1.1, 3.1.2, …) per area: Authentication, Authorization,
-Profile, Notifications, etc.
+Profile, Notifications, etc. The **Status** column is `Active` by default;
+amendments set it to `Removed`/`Deprecated` (with the version) rather than
+deleting the row — see `change-management.md`.
 
 ### 3.2 External interface requirements
 User interfaces (requirements level), hardware interfaces, software/third-party

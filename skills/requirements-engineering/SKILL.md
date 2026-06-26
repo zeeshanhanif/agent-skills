@@ -5,15 +5,15 @@ description: >-
   design. Through a thorough, area-by-area interview it elicits and specifies
   the complete requirements for a new application, proactively enumerating the
   standard sub-requirements for each capability area (for authentication:
-  sign-up, sign-in, verification, forgot/reset password, logout, session
-  expiry, lockout) plus all non-functional requirements. Produces a structured
-  SRS (ISO/IEC/IEEE 29148 lineage) in markdown and Word, a separate use-case
-  document (detailed specs plus a use-case diagram) in markdown and Word, and a
-  requirements traceability matrix. Use at the very start of a project, before
-  architecture and UX, whenever a new system's requirements must be captured.
-  Trigger on "gather requirements", "write an SRS", "requirements engineering",
-  "specify the requirements", or any project kickoff before design begins.
-  Saves progress incrementally so long sessions can resume.
+  sign-up, sign-in, verification, password reset, logout) plus all
+  non-functional requirements. Produces a structured SRS (ISO/IEC/IEEE 29148
+  lineage) in markdown and Word, a separate use-case document in markdown and
+  Word, and a requirements traceability matrix. Also amends a finalized SRS —
+  adding, updating, or removing requirements with stable IDs. Use at the start
+  of a project before architecture and UX, or when changing existing
+  requirements. Trigger on "gather requirements", "write an SRS", "requirements
+  engineering", "specify the requirements", "add a requirement", or "update the
+  requirements". Saves progress incrementally so long sessions can resume.
 ---
 
 # Requirements Engineering
@@ -73,14 +73,35 @@ drafts themselves (which become deliverables 1 and 3 once finalized).
 
 ## Workflow
 
-### Phase 0 — Resume check (always first)
+### Phase 0 — Mode detection (always first)
 
-Before anything else, look for `docs/.requirements-progress.md` and an existing
-`docs/srs.md`. Read `references/checkpointing.md` for the protocol. If they
-exist, read them, summarize for the user what's already captured and what remains,
-and continue from the first pending area. If they don't exist, create the
-progress tracker and start fresh. **Never silently restart work that's already
-been done.**
+Before anything else, look for `docs/.requirements-progress.md` and `docs/srs.md`
+and read `references/checkpointing.md`. Determine which of **three** modes applies
+by combining what's on disk with the user's intent:
+
+- **Fresh start** — no SRS and no tracker. Create the progress tracker and the
+  SRS skeleton, then begin Phase 1.
+- **Resume** — a tracker exists with `pending`/`in-progress` areas (the interview
+  was interrupted). Read both files, summarize what's captured and what remains,
+  and continue from the first pending area.
+- **Amendment** — a **finalized** SRS exists (tracker shows no pending work, or is
+  marked finalized) and the user wants to change requirements. Switch to amendment
+  handling (Phase A) instead of resuming or restarting.
+
+Detection is automatic — **the user passes no special flag.** The finalized SRS on
+disk is the precondition; the user's plain-language intent disambiguates ("add a
+requirement", "update FR-AUTH-007", "remove…" → amendment; "spec a new project" →
+fresh; "what does the SRS say…" → just answer). Two firm rules:
+
+- **Resume beats amend.** If the interview is unfinished and the user asks to add
+  something new, finish the pending areas first, then handle the new request —
+  amending a half-specified SRS invites inconsistency.
+- **When an SRS exists and intent is ambiguous, confirm before acting — never
+  silently restart.** A bare invocation against a finalized SRS gets a short
+  question ("There's a finalized SRS here — v1.2, 47 functional / 19
+  non-functional. Amend it, ask about it, or start a new one?"), not a guess. The
+  expensive failure is wiping or duplicating a finalized SRS; one cheap question
+  prevents it.
 
 ### Phase 1 — Frame and scope
 
@@ -151,8 +172,37 @@ they never need checkpointing — the markdown is the checkpointed source.
 Confirm all five files exist. Summarize the requirement counts (e.g., "47
 functional across 8 areas, 19 non-functional, 12 use cases") and any open
 questions or TBDs flagged during elicitation. Note that `docs/srs.md` is the
-source of truth the architecture, UX, and planning skills will consume. Offer to
-proceed to `software-architecture`.
+source of truth the architecture, UX, and planning skills will consume. Mark the
+SRS finalized in the progress tracker (this is what later distinguishes amendment
+mode from resume). Offer to proceed to `software-architecture`.
+
+## Phase A — Amending a finalized SRS
+
+Entered from Phase 0 when a finalized SRS exists and the user wants to change
+requirements. Read `references/change-management.md` for the full protocol. The
+cardinal rule: **requirement IDs are immutable and never recycled** — everything
+downstream references them. In brief:
+
+1. **Classify each change** as add, modify, or remove, and apply its rule:
+   - *Add* → assign the next free ID in that area (never reuse a retired number),
+     specify it with the same enumeration discipline, append it.
+   - *Modify* → keep the same ID, change the statement.
+   - *Remove* → do **not** delete or renumber; mark the requirement
+     `Deprecated`/`Removed` and keep the row so traceability and dangling
+     references stay visible.
+2. **Version and log.** Bump the SRS version and add a revision-history entry
+   recording what changed, when, and which IDs were affected.
+3. **Propagate.** Update the use case(s) that trace to the changed ID, update the
+   RTM row(s), then regenerate `docs/srs.docx` and `docs/use-cases.docx` from the
+   finalized markdown. The RTM is the index for what a change touches.
+4. **Emit a cross-skill impact note.** When a finalized requirement that
+   downstream docs were built on is modified or removed, you can't edit those
+   docs, but you must not stay silent: report which downstream documents
+   referenced the affected IDs (architecture, ux-foundations, implementation-plan)
+   so the user knows what to review or re-run.
+
+Amendment reuses the same catalog, templates, and checkpointing as authoring —
+each amendment is itself written to disk and logged before moving on.
 
 ## Scope boundaries
 
