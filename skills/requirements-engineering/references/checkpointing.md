@@ -44,9 +44,6 @@ would be noise). Suggested format:
 
 ## Phase 6 — RTM
 - [pending]
-
-## Phase 7 — Word docs
-- [pending]
 ```
 
 Recording the ID range next to a completed area (e.g., `FR-AUTH-001..018`) makes

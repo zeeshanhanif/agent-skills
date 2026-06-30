@@ -62,7 +62,7 @@ complements the RTM.
 
 ## Propagation checklist (run after every amendment)
 
-A change is not done until all five files are consistent:
+A change is not done until all three files are consistent:
 
 1. **`srs.md`** — requirement added/modified/tombstoned; version bumped; revision
    history updated.
@@ -70,9 +70,7 @@ A change is not done until all five files are consistent:
    for new requirements that need them.
 3. **`rtm.md`** — rows added/updated; removed requirements marked; traceability
    intact.
-4. **`srs.docx`** and **`use-cases.docx`** — regenerated from the finalized
-   markdown (see `docx-generation.md`).
-5. **Progress tracker** — record the amendment and the new ID ranges.
+4. **Progress tracker** — record the amendment and the new ID ranges.
 
 ## Cross-skill impact notes
 
