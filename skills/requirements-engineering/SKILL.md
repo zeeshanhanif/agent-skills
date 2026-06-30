@@ -7,8 +7,8 @@ description: >-
   standard sub-requirements for each capability area (for authentication:
   sign-up, sign-in, verification, password reset, logout) plus all
   non-functional requirements. Produces a structured SRS (ISO/IEC/IEEE 29148
-  lineage) in markdown and Word, a separate use-case document in markdown and
-  Word, and a requirements traceability matrix. Also amends a finalized SRS —
+  lineage) in markdown, a separate use-case document in markdown, and a
+  requirements traceability matrix. Also amends a finalized SRS —
   adding, updating, or removing requirements with stable IDs. Use at the start
   of a project before architecture and UX, or when changing existing
   requirements. Trigger on "gather requirements", "write an SRS", "requirements
@@ -55,21 +55,23 @@ and expand, not as finished requirements.
 
 ## Outputs
 
-Five files (three logical documents). Working files are written to `docs/`.
+Three files (three logical documents), all markdown, written to `docs/`.
 
-1. `docs/srs.md` — the comprehensive SRS (markdown; the source of truth
-   downstream skills read). Vision & scope, user characteristics, constraints,
-   assumptions, glossary, **functional requirements**, and **non-functional
-   requirements** all live here as structured sections.
-2. `docs/srs.docx` — the same SRS as a formal Word document.
-3. `docs/use-cases.md` — detailed textual use-case specifications plus a Mermaid
+1. `docs/srs.md` — the comprehensive SRS (the source of truth downstream skills
+   read). Vision & scope, user characteristics, constraints, assumptions,
+   glossary, **functional requirements**, and **non-functional requirements** all
+   live here as structured sections.
+2. `docs/use-cases.md` — detailed textual use-case specifications plus a Mermaid
    use-case diagram (separate document, use-case-centric; no user stories).
-4. `docs/use-cases.docx` — the use-case document as Word.
-5. `docs/rtm.md` — the Requirements Traceability Matrix (markdown table).
+3. `docs/rtm.md` — the Requirements Traceability Matrix (markdown table).
+
+Word/PDF output is **out of scope** — markdown is the deliverable. Users who want
+a Word version can convert it themselves (e.g., with pandoc); this skill does not
+own that.
 
 Plus working files that are **not** deliverables: `docs/.requirements-progress.md`
 (the progress tracker), and the incrementally-built `srs.md` / `use-cases.md`
-drafts themselves (which become deliverables 1 and 3 once finalized).
+drafts themselves (which become deliverables 1 and 2 once finalized).
 
 ## Workflow
 
@@ -160,16 +162,9 @@ placeholder columns for the downstream design and test artifacts. Because every
 requirement was given a stable ID during specification, this is largely
 assembly.
 
-### Phase 7 — Generate Word documents
+### Phase 7 — Deliver
 
-Only after the markdown sources are finalized, read
-`references/docx-generation.md` and produce `docs/srs.docx` and
-`docs/use-cases.docx` from the finalized markdown. These are generated last, so
-they never need checkpointing — the markdown is the checkpointed source.
-
-### Phase 8 — Deliver
-
-Confirm all five files exist. Summarize the requirement counts (e.g., "47
+Confirm all three files exist. Summarize the requirement counts (e.g., "47
 functional across 8 areas, 19 non-functional, 12 use cases") and any open
 questions or TBDs flagged during elicitation. Note that `docs/srs.md` is the
 source of truth the architecture, UX, and planning skills will consume. Mark the
@@ -192,9 +187,9 @@ downstream references them. In brief:
      references stay visible.
 2. **Version and log.** Bump the SRS version and add a revision-history entry
    recording what changed, when, and which IDs were affected.
-3. **Propagate.** Update the use case(s) that trace to the changed ID, update the
-   RTM row(s), then regenerate `docs/srs.docx` and `docs/use-cases.docx` from the
-   finalized markdown. The RTM is the index for what a change touches.
+3. **Propagate.** Update the use case(s) that trace to the changed ID and update
+   the RTM row(s) so all three markdown files stay consistent. The RTM is the
+   index for what a change touches.
 4. **Emit a cross-skill impact note.** When a finalized requirement that
    downstream docs were built on is modified or removed, you can't edit those
    docs, but you must not stay silent: report which downstream documents
