@@ -7,7 +7,7 @@ agents that follow the open `SKILL.md` standard).
 
 | Skill | What it does |
 | :---- | :----------- |
-| [`requirements-engineering`](./skills/requirements-engineering) | The first SDLC step. Through an exhaustive, area-by-area interview it specifies the complete requirements, then produces a structured SRS (IEEE 29148 lineage), a use-case document, and a traceability matrix — in both markdown and Word. Checkpoints so long sessions can resume, and later amends a finalized SRS with stable, never-recycled IDs. |
+| [`requirements-engineering`](./skills/requirements-engineering) | The first SDLC step. Through an exhaustive, area-by-area interview it specifies the complete requirements, then produces a structured SRS (IEEE 29148 lineage), a use-case document, and a traceability matrix (markdown). Checkpoints so long sessions can resume, and later amends a finalized SRS with stable, never-recycled IDs. |
 | [`software-architecture`](./skills/software-architecture) | Interviews you about a new application, then produces a right-sized architecture document with C4 diagrams (Mermaid) and Architecture Decision Records. |
 | [`ux-foundations`](./skills/ux-foundations) | Reads your architecture document, then produces the UX foundations — a shared design core (brand, tokens, accessibility, voice) plus a per-surface profile (IA, navigation, key flows, screen inventory) for each UI surface. |
 | [`implementation-planning`](./skills/implementation-planning) | Reads the architecture and UX-foundations docs and produces a sequenced build plan — epics and vertical feature slices, the walking skeleton, a dependency/risk-ordered sequence, and the first-slice spec. Stops at the plan; detailed design and code are downstream. |
@@ -54,12 +54,13 @@ not an agile backlog.
   limiting, admin/back-office) and walks the ISO 25010 quality model for
   **measurable** non-functional requirements.
 - A structured **SRS** (ISO/IEC/IEEE 29148 / IEEE 830 lineage) as `docs/srs.md` —
-  the single source of truth the downstream skills read — plus a formal
-  `docs/srs.docx`.
+  the single source of truth the downstream skills read.
 - A separate **use-case document** (detailed textual specs + a Mermaid use-case
-  diagram) as `docs/use-cases.md` and `docs/use-cases.docx`.
+  diagram) as `docs/use-cases.md`.
 - A **requirements traceability matrix** (`docs/rtm.md`) linking every requirement
   ID to its source and the use cases that exercise it.
+
+All three outputs are markdown (convert to Word/PDF yourself if you need it).
 
 It **checkpoints incrementally** (`docs/.requirements-progress.md`) and resumes
 after an interruption, because a full requirements interview is long. Epic/feature
@@ -75,9 +76,9 @@ one cardinal rule — **requirement IDs are immutable and never recycled**: adds
 the next free ID, modifies keep the ID, and removals are *tombstoned*
 (`Deprecated`/`Removed`, kept in place) instead of deleted or renumbered, so
 traceability holds. Each change bumps the SRS version with a revision-history entry,
-propagates to the affected use cases and the RTM, regenerates the Word files, and
-emits a **cross-skill impact note** flagging which downstream documents
-(architecture, UX, plan) referenced the changed IDs.
+propagates to the affected use cases and the RTM, and emits a **cross-skill impact
+note** flagging which downstream documents (architecture, UX, plan) referenced the
+changed IDs.
 
 > Install with `npx skills add ... --skill requirements-engineering`, or copy it in
 > by hand following [Manual install (Claude Code)](#install-claude-code) below
@@ -111,8 +112,7 @@ skills/requirements-engineering/
     ├── rtm-guide.md                # building the traceability matrix
     ├── srs-template.md             # IEEE 29148-lineage SRS structure
     ├── checkpointing.md            # incremental save, resume + mode detection
-    ├── change-management.md        # amending a finalized SRS (stable IDs, tombstones)
-    └── docx-generation.md          # rendering the SRS + use cases to Word
+    └── change-management.md        # amending a finalized SRS (stable IDs, tombstones)
 ```
 
 ---
@@ -126,16 +126,27 @@ security, team, timeline, lock-in tolerance — and *derives* the design from yo
 answers. Then it writes the document, draws the diagrams, and records each
 significant decision (with the options it weighed and why) as an ADR.
 
+**It designs from the SRS when one exists.** If `docs/srs.md` is present (from
+`requirements-engineering`), it reads the requirements and NFRs as the primary
+source, plays back the architecture drivers, and interviews only for the gaps the
+SRS doesn't cover (tech/stack preferences, lock-in tolerance, team skills,
+deployment target) — no re-interview. With no SRS it runs the full interview and
+works standalone. The SRS states *what*; architecture still decides *how* (stack,
+stores, deployment).
+
 **What you get**
-- A structured interview, asked in logical batches (it infers what it can and
-  offers defaults you can accept with one word).
+- A structured interview — full when there's no SRS, otherwise just the gaps —
+  asked in logical batches (it infers what it can and offers defaults you can
+  accept with one word).
 - A Markdown architecture document based on the **arc42** template, right-sized to
   the system — a CRUD app gets a tight doc, a payment platform gets the full
   treatment.
 - **C4-model diagrams** as embedded Mermaid (System Context + Container by default,
   plus sequence/deployment diagrams when warranted), so the whole thing is one
   portable, diff-able artifact that renders on GitHub.
-- **Architecture Decision Records** capturing the *why*, not just the *what*.
+- **Architecture Decision Records** capturing the *why*, not just the *what* — each
+  citing the **SRS requirement IDs** it addresses, so requirement → decision
+  traceability runs both ways.
 
 **Outputs** default to a single `docs/architecture.md`; it can also export a `.docx`
 for stakeholders, or split ADRs into a `docs/adr/` log on request.

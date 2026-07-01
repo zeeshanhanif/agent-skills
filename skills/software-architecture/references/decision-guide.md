@@ -11,6 +11,12 @@ internet implies. Complexity is a cost paid in development speed, operational
 burden, and cognitive load; demand that each increment of it buy a real
 requirement.
 
+**Trace every fork to its driver.** As you choose, record the SRS requirement
+ID(s) forcing the choice (a scaling fork driven by NFR-SCAL-001, a consistency
+fork by NFR-CON-002). If a fork has no requirement behind it, that's a signal
+you may be adding complexity nothing asked for. These IDs flow into each ADR's
+"Requirements addressed" field.
+
 ---
 
 ## Monolith vs. modular monolith vs. microservices
