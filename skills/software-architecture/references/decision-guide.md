@@ -11,11 +11,13 @@ internet implies. Complexity is a cost paid in development speed, operational
 burden, and cognitive load; demand that each increment of it buy a real
 requirement.
 
-**Trace every fork to its driver.** As you choose, record the SRS requirement
-ID(s) forcing the choice (a scaling fork driven by NFR-SCAL-001, a consistency
-fork by NFR-CON-002). If a fork has no requirement behind it, that's a signal
-you may be adding complexity nothing asked for. These IDs flow into each ADR's
-"Requirements addressed" field.
+**Trace every fork to its driver (source-gated).** As you choose, record what
+forces the choice: SRS requirement ID(s) when `srs.md` exists (a scaling fork by
+NFR-SCAL-001, a consistency fork by NFR-CON-002), a use-case ID when an exception
+flow or actor boundary from `use-cases.md` drove a resilience/security fork
+(UC-007), and plain prose when neither document exists. Never invent an ID. If a
+fork has no driver at all, that's a signal you may be adding complexity nothing
+asked for. These drivers flow into each ADR's "Requirements addressed" field.
 
 ---
 

@@ -33,17 +33,32 @@ enforces that order: **understand → decide → document.**
 
 ## Input
 
-This skill consumes the requirements specification produced upstream, when it
-exists.
+This skill consumes the requirements artifacts produced upstream, when they
+exist.
 
-- If the user provides a path, use it. **Otherwise default to `docs/srs.md`.**
-- **If an SRS is found**, it is the primary source: read the requirements and
-  NFRs from it and design against them. The interview shrinks to confirmation
-  plus the architecture-specific gaps the SRS doesn't cover (see Phase 1).
+- **SRS (primary)** — if the user provides a path, use it; **otherwise default to
+  `docs/srs.md`.** When found, it is the primary source: read the requirements and
+  NFRs and design against them, shrinking the interview to confirmation plus the
+  architecture-specific gaps (see Phase 1).
+- **Use cases (secondary)** — default `docs/use-cases.md`. When found, read it to
+  inform the **runtime view** (each significant use case becomes a runtime
+  scenario / sequence diagram) and the **resilience and security** decisions (the
+  exception/alternate flows reveal failure-handling needs; the actor-to-use-case
+  mapping reveals trust boundaries). It refines *how* the design realizes the
+  requirements; it does not replace the SRS as the driver of *what*.
+- **RTM** — not consumed. The traceability matrix re-indexes the SRS and use
+  cases without adding input information; this skill ignores it.
 - **If no SRS is found**, fall back gracefully to the full elicitation interview
   (all seven rounds in `references/elicitation-guide.md`) — the skill stays fully
   usable standalone, for quick architecture work without a prior requirements
   phase.
+
+**Source-gated traceability (one rule, applied per source).** Cite an ID only
+when the document that defines it is present: SRS requirement IDs when `srs.md`
+exists, use-case IDs when `use-cases.md` exists. When a source is absent, state
+the driver in plain prose instead — **never fabricate an ID.** In the common
+cases both documents are present (full pipeline) or neither is (standalone
+fallback, prose drivers throughout); the rule handles any mix automatically.
 
 The boundary: the SRS states *what* (requirements); architecture still decides
 *how* (technology stack, data stores, deployment). Read any *mandated* technology
@@ -55,7 +70,7 @@ decision.
 Follow these phases in order. Do not skip straight to a document — designing from
 unconfirmed assumptions is the failure mode this skill exists to prevent.
 
-### Phase 1 — Ingest the SRS, then elicit the gaps
+### Phase 1 — Ingest the requirements, then elicit the gaps
 
 1. **Ingest.** Read `docs/srs.md` (per **Input**). Extract the architecture-
    relevant content: purpose and scope (§1.2), product perspective and system
@@ -64,6 +79,12 @@ unconfirmed assumptions is the failure mode this skill exists to prevent.
    interfaces (§3.2), the constraints (§2.5), and — most importantly — the
    **non-functional requirements (§3.3), which are the architecture drivers**.
    Note each NFR's ID; you'll cite them in decisions and ADRs.
+
+   Then read `docs/use-cases.md` if present: note the significant use cases (they
+   become runtime scenarios), and scan the **exception/alternate flows** for
+   resilience requirements (e.g., "processor unavailable → queue and retry"
+   implies an async boundary) and the **actors** for trust/authorization
+   boundaries. Keep each use case's ID for the runtime view.
 
    If no SRS exists, skip to running the full interview in
    `references/elicitation-guide.md`, then continue at Phase 2.
@@ -87,13 +108,16 @@ unconfirmed assumptions is the failure mode this skill exists to prevent.
 Derive the architecture from what you learned. Read
 `references/decision-guide.md` for how to reason about the recurring forks
 (monolith vs services, sync vs async, SQL vs NoSQL, serverless vs containers,
-vendor-managed vs portable). For each significant fork, **record which SRS
-requirement IDs drive it** (e.g., a scaling decision driven by NFR-SCAL-001) —
-this is what makes the decision traceable and lets a later requirements change
-point back to the architecture it affects. You will write an ADR per fork in
-Phase 4, so note the options you weighed and *why* you chose. Resist the urge to
-over-engineer: the right architecture for most new apps is simpler than the
-architecture people reach for.
+vendor-managed vs portable). For each significant fork, **record what drives it,
+source-gated**: cite SRS requirement IDs when `srs.md` exists (e.g., a scaling
+fork driven by NFR-SCAL-001), cite use-case IDs where an exception flow or actor
+boundary drove a resilience/security fork (e.g., UC-007), and when neither source
+document exists, state the driver in plain prose ("driven by: peak load ~5k
+concurrent users") — never invent an ID. This is what makes the decision
+traceable and lets a later requirements change point back to the architecture it
+affects. You will write an ADR per fork in Phase 4, so note the options you
+weighed and *why* you chose. Resist the urge to over-engineer: the right
+architecture for most new apps is simpler than the architecture people reach for.
 
 ### Phase 3 — Document and diagram
 
@@ -106,8 +130,10 @@ architecture people reach for.
    embedded directly in the document**, so the whole thing is one portable
    artifact. At minimum produce a **System Context** diagram and a **Container**
    diagram (the two C4 levels that earn their keep almost every time). Add a
-   sequence diagram for the most important runtime flow, and a deployment
-   diagram when the infrastructure is non-trivial.
+   sequence diagram for the most important runtime flow — when `use-cases.md`
+   exists, the significant use cases are the natural choice for these runtime
+   scenarios; cite their UC IDs — and a deployment diagram when the
+   infrastructure is non-trivial.
 
 ### Phase 4 — Capture decisions
 
@@ -115,10 +141,12 @@ Read `references/adr-template.md` and write one ADR per significant decision
 from Phase 2. ADRs are what separate a real architecture from a tech-stack list:
 they record the context, the options, the choice, and the consequences, so that
 six months later nobody has to reverse-engineer why the system is the way it is.
-Each ADR cites the **SRS requirement IDs it addresses** (the "Requirements
-addressed" field), so traceability runs requirement → decision both ways. Embed
-them in the document's "Architecture Decisions" section (or as separate files
-under `docs/adr/` if the user prefers — ask).
+Each ADR's **"Requirements addressed"** field is source-gated: cite SRS IDs (and
+any use-case IDs) the decision addresses when those documents exist, otherwise
+state the driver in prose — never fabricate an ID. With a real SRS this gives
+requirement → decision traceability both ways. Embed the ADRs in the document's
+"Architecture Decisions" section (or as separate files under `docs/adr/` if the
+user prefers — ask).
 
 ### Phase 5 — Deliver
 

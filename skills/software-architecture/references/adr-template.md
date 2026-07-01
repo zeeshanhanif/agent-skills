@@ -21,11 +21,15 @@ Keep each ADR short — half a page is plenty. Use this structure:
 
 **Status:** Proposed | Accepted | Superseded by ADR-XXX
 **Date:** <date>
-**Requirements addressed:** the SRS requirement IDs that drive this decision
-(e.g., NFR-SCAL-001, NFR-AVL-002, FR-ORD-014). Omit only if the decision is
-purely internal with no requirement behind it. This field is the back-link that
-makes requirement → decision traceability work — when a requirement later
-changes, this is how you find the ADRs it affects.
+**Requirements addressed:** source-gated. Cite the SRS requirement IDs that
+drive this decision when `srs.md` exists (e.g., NFR-SCAL-001, NFR-AVL-002,
+FR-ORD-014), plus any use-case IDs when an exception flow or actor boundary from
+`use-cases.md` drove it (e.g., UC-007). When neither source document exists,
+state the driver in prose instead (e.g., "peak load ~5k concurrent users") —
+**never fabricate an ID.** Omit only if the decision is purely internal with no
+driver. This field is the back-link that makes requirement → decision
+traceability work — when a requirement later changes, this is how you find the
+ADRs it affects.
 
 **Context**
 What's the situation and the forces at play? Which requirements and constraints
