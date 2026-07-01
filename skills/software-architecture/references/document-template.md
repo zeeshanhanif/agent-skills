@@ -20,10 +20,15 @@ Use this structure:
 > Status: Draft | Reviewed | Approved · Last updated: <date> · Author: <name>
 
 ## 1. Introduction and Goals  *[essential]*
-One paragraph on what the system is and the problem it solves. Then:
+One paragraph on what the system is and the problem it solves. When an SRS
+exists, this section **summarizes and links to `docs/srs.md`** rather than
+restating it — the SRS is the source of truth for requirements; this document
+references it. Then:
 - **Top quality goals** (ranked): the 2–3 quality attributes this architecture
-  optimizes for, in priority order, each with one line on why. This ranking is
-  the north star — every later decision should be traceable to it.
+  optimizes for, in priority order, **each citing the SRS NFR ID(s) it comes
+  from** (e.g., "Availability [NFR-AVL-001]"). This ranking is the north star —
+  every later decision should be traceable to it, and to the requirement behind
+  it.
 - **Key stakeholders** and what each cares about (optional for small systems).
 
 ## 2. Constraints  *[essential]*
@@ -77,14 +82,17 @@ each.
 
 ## 9. Architecture Decisions  *[essential]*
 The ADRs — one per significant decision (see adr-template.md). This is the most
-valuable section: it records the *why*. At minimum, an ADR for each item in the
-Solution Strategy.
+valuable section: it records the *why*. Each ADR's **"Requirements addressed"**
+field cites the SRS IDs it satisfies, giving requirement → decision traceability.
+At minimum, an ADR for each item in the Solution Strategy.
 
 ## 10. Quality Requirements  *[scale]*
-Concrete, testable quality scenarios where they matter ("under 500 concurrent
-users, p95 response time stays under 300ms"; "the system tolerates the loss of
-one availability zone with no data loss"). Turns vague goals into things you can
-verify.
+Concrete, testable quality scenarios where they matter. When an SRS exists, these
+**derive from and cite its NFRs by ID** rather than re-deriving targets — e.g.,
+"[NFR-PERF-001] under 500 concurrent users, p95 response time stays under 300ms";
+"[NFR-AVL-002] the system tolerates the loss of one availability zone with no
+data loss". Turns the requirements' quality targets into architecture-level
+scenarios you can verify.
 
 ## 11. Risks and Technical Debt  *[essential]*
 Honest list of the architecture's known weak spots, assumptions that might not

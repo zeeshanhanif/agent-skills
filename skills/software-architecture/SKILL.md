@@ -12,8 +12,9 @@ description: >-
   architecture be", "create an architecture doc/diagram", or any greenfield
   system-design discussion — even when the user does not say the word
   "architecture" explicitly but is clearly about to start building something
-  new. Prefer this skill over answering from memory whenever real architectural
-  trade-offs are in play.
+  new. If an SRS (docs/srs.md) exists, it designs from those requirements and
+  NFRs, interviewing only for gaps. Prefer this skill over answering from memory
+  whenever real architectural trade-offs are in play.
 ---
 
 # Software Architecture
@@ -30,44 +31,69 @@ much can it be down, how consistent must the data be, what's the team, what's
 the lock-in tolerance" — and *derives* the stack from the answers. This skill
 enforces that order: **understand → decide → document.**
 
+## Input
+
+This skill consumes the requirements specification produced upstream, when it
+exists.
+
+- If the user provides a path, use it. **Otherwise default to `docs/srs.md`.**
+- **If an SRS is found**, it is the primary source: read the requirements and
+  NFRs from it and design against them. The interview shrinks to confirmation
+  plus the architecture-specific gaps the SRS doesn't cover (see Phase 1).
+- **If no SRS is found**, fall back gracefully to the full elicitation interview
+  (all seven rounds in `references/elicitation-guide.md`) — the skill stays fully
+  usable standalone, for quick architecture work without a prior requirements
+  phase.
+
+The boundary: the SRS states *what* (requirements); architecture still decides
+*how* (technology stack, data stores, deployment). Read any *mandated* technology
+from the SRS constraints section, but the stack is otherwise an architecture
+decision.
+
 ## Workflow
 
-Follow these phases in order. Do not skip the interview — generating a document
-from assumptions is the failure mode this skill exists to prevent.
+Follow these phases in order. Do not skip straight to a document — designing from
+unconfirmed assumptions is the failure mode this skill exists to prevent.
 
-### Phase 1 — Frame and elicit
+### Phase 1 — Ingest the SRS, then elicit the gaps
 
-1. Open with one or two sentences confirming what's being built, then explain
-   you'll ask a few rounds of questions so the architecture fits the real
-   requirements. Keep it light; this is a conversation, not a form.
+1. **Ingest.** Read `docs/srs.md` (per **Input**). Extract the architecture-
+   relevant content: purpose and scope (§1.2), product perspective and system
+   boundary (§2.1), user classes (§2.3), the functional requirements and their
+   capability areas (§3.1, which become candidate building blocks), the external
+   interfaces (§3.2), the constraints (§2.5), and — most importantly — the
+   **non-functional requirements (§3.3), which are the architecture drivers**.
+   Note each NFR's ID; you'll cite them in decisions and ADRs.
 
-2. Read `references/elicitation-guide.md` and run the interview. Key rules:
-   - **Ask in thematic batches, not one-at-a-time and not all-at-once.** Group
-     related questions so the user can answer a coherent chunk, then move on.
-   - **Infer aggressively and state your inferences.** If the user said "an
-     internal admin dashboard for 20 staff," you already know scale is small,
-     availability needs are modest, and you don't need a global CDN — say so and
-     let them correct you rather than asking.
-   - **Offer defaults the user can accept with one word.** "I'll assume a
-     relational store unless your data is more document-shaped — sound right?"
-   - **Let them dump.** If the user pastes a big brief, extract every answer you
-     can from it first and only ask about genuine gaps.
-   - **Stop when you have enough to decide, not when you've asked everything.**
-     A small app needs far fewer answers than a multi-tenant SaaS.
+   If no SRS exists, skip to running the full interview in
+   `references/elicitation-guide.md`, then continue at Phase 2.
 
-3. Before moving on, play back a short summary of what you heard and the key
-   constraints/quality attributes you'll be designing toward. Get a confirable
-   nod. This catches misunderstandings before they're baked into a document.
+2. **Play back the drivers.** Summarize the top quality attributes (by NFR ID),
+   the hard constraints, and the capability areas you'll design toward, and get a
+   quick nod. Trust the SRS — this is a confirmation, not a re-interview. Flag any
+   architecture-driving NFR that's missing or vague (e.g., no concrete
+   scalability target); ask about the few that would change the design, and
+   assume-and-note the rest.
+
+3. **Interview only the gaps.** Read `references/elicitation-guide.md` and ask
+   only what the SRS doesn't answer — technology preferences and any mandated
+   stack, lock-in tolerance, team skills, data-store-relevant access patterns,
+   and the deployment/cloud target. Same technique throughout: batch related
+   questions, infer aggressively and state inferences, offer one-word-acceptable
+   defaults. Keep it short — most of the picture is already in the SRS.
 
 ### Phase 2 — Decide
 
 Derive the architecture from what you learned. Read
 `references/decision-guide.md` for how to reason about the recurring forks
 (monolith vs services, sync vs async, SQL vs NoSQL, serverless vs containers,
-vendor-managed vs portable). For each significant fork, you will write an ADR in
-Phase 4, so note the options you weighed and *why* you chose as you did. Resist
-the urge to over-engineer: the right architecture for most new apps is simpler
-than the architecture people reach for.
+vendor-managed vs portable). For each significant fork, **record which SRS
+requirement IDs drive it** (e.g., a scaling decision driven by NFR-SCAL-001) —
+this is what makes the decision traceable and lets a later requirements change
+point back to the architecture it affects. You will write an ADR per fork in
+Phase 4, so note the options you weighed and *why* you chose. Resist the urge to
+over-engineer: the right architecture for most new apps is simpler than the
+architecture people reach for.
 
 ### Phase 3 — Document and diagram
 
@@ -89,8 +115,10 @@ Read `references/adr-template.md` and write one ADR per significant decision
 from Phase 2. ADRs are what separate a real architecture from a tech-stack list:
 they record the context, the options, the choice, and the consequences, so that
 six months later nobody has to reverse-engineer why the system is the way it is.
-Embed them in the document's "Architecture Decisions" section (or as separate
-files under `docs/adr/` if the user prefers — ask).
+Each ADR cites the **SRS requirement IDs it addresses** (the "Requirements
+addressed" field), so traceability runs requirement → decision both ways. Embed
+them in the document's "Architecture Decisions" section (or as separate files
+under `docs/adr/` if the user prefers — ask).
 
 ### Phase 5 — Deliver
 

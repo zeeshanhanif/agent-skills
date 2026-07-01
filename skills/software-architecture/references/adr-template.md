@@ -21,11 +21,16 @@ Keep each ADR short — half a page is plenty. Use this structure:
 
 **Status:** Proposed | Accepted | Superseded by ADR-XXX
 **Date:** <date>
+**Requirements addressed:** the SRS requirement IDs that drive this decision
+(e.g., NFR-SCAL-001, NFR-AVL-002, FR-ORD-014). Omit only if the decision is
+purely internal with no requirement behind it. This field is the back-link that
+makes requirement → decision traceability work — when a requirement later
+changes, this is how you find the ADRs it affects.
 
 **Context**
 What's the situation and the forces at play? Which requirements and constraints
-(reference them from the interview) make this decision necessary? What makes it
-non-trivial? State the quality attributes in tension.
+(cite them by SRS ID) make this decision necessary? What makes it non-trivial?
+State the quality attributes in tension.
 
 **Decision**
 What did we decide, stated plainly and actively. "We will use X."
@@ -50,6 +55,8 @@ later decisions, and what would make us revisit it.
 
 **Status:** Accepted
 **Date:** 2026-06-17
+**Requirements addressed:** NFR-MAIN-001 (maintainable by a small team),
+NFR-SCAL-002 (scale target modest for v1), constraint C-03 (six-week MVP)
 
 **Context**
 The system has five sub-domains (auth, catalog, orders, payments,
