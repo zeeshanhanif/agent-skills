@@ -126,13 +126,16 @@ security, team, timeline, lock-in tolerance — and *derives* the design from yo
 answers. Then it writes the document, draws the diagrams, and records each
 significant decision (with the options it weighed and why) as an ADR.
 
-**It designs from the SRS when one exists.** If `docs/srs.md` is present (from
-`requirements-engineering`), it reads the requirements and NFRs as the primary
-source, plays back the architecture drivers, and interviews only for the gaps the
-SRS doesn't cover (tech/stack preferences, lock-in tolerance, team skills,
-deployment target) — no re-interview. With no SRS it runs the full interview and
-works standalone. The SRS states *what*; architecture still decides *how* (stack,
-stores, deployment).
+**It designs from the requirements docs when they exist.** If `docs/srs.md` is
+present (from `requirements-engineering`), it reads the requirements and NFRs as
+the primary source, plays back the architecture drivers, and interviews only for
+the gaps the SRS doesn't cover (tech/stack preferences, lock-in tolerance, team
+skills, deployment target) — no re-interview. If `docs/use-cases.md` is present it
+also mines them for the **runtime view** (each significant use case becomes a
+sequence diagram) and for **resilience and security** decisions (exception flows
+reveal failure handling; actors reveal trust boundaries). With no SRS it runs the
+full interview and works standalone. The SRS states *what*; architecture still
+decides *how* (stack, stores, deployment).
 
 **What you get**
 - A structured interview — full when there's no SRS, otherwise just the gaps —
@@ -144,9 +147,10 @@ stores, deployment).
 - **C4-model diagrams** as embedded Mermaid (System Context + Container by default,
   plus sequence/deployment diagrams when warranted), so the whole thing is one
   portable, diff-able artifact that renders on GitHub.
-- **Architecture Decision Records** capturing the *why*, not just the *what* — each
-  citing the **SRS requirement IDs** it addresses, so requirement → decision
-  traceability runs both ways.
+- **Architecture Decision Records** capturing the *why*, not just the *what*. When
+  the requirements docs are present, each ADR cites the **SRS requirement IDs**
+  (and any use-case IDs) it addresses so traceability runs both ways; when they're
+  absent it names the driver in prose instead — it never invents an ID.
 
 **Outputs** default to a single `docs/architecture.md`; it can also export a `.docx`
 for stakeholders, or split ADRs into a `docs/adr/` log on request.
@@ -184,11 +188,21 @@ starts watching it.
 <a id="use"></a>
 ### Use
 
-In a Claude Code session, either let Claude trigger it automatically:
+Two ways in, depending on whether you ran `requirements-engineering` first.
+
+**In the pipeline** — with a `docs/srs.md` already in the repo, it designs from
+those requirements and only asks about the gaps:
+```text
+The requirements are in docs/srs.md — now design the architecture.
+```
+
+**Standalone** — no SRS yet, so it runs the full interview:
 ```text
 I'm building a multi-tenant inventory app for small retailers — help me architect it.
 ```
-or invoke it directly:
+
+Either way you can also invoke it directly — it auto-detects `docs/srs.md` (and
+`docs/use-cases.md`) if present, and falls back to the full interview if not:
 ```text
 /software-architecture
 ```

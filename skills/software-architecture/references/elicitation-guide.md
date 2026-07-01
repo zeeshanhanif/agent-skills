@@ -25,6 +25,11 @@ about tech stack, lock-in tolerance, team skills, data access patterns, and
 deployment. **Without an SRS, run all rounds in full** — this is the standalone
 fallback.
 
+If `docs/use-cases.md` is also present, it's a secondary source: its
+exception/alternate flows often pre-answer Round 6's "what happens when a
+dependency is down?", and its actors inform trust boundaries. Read it for those
+rather than asking.
+
 Either way, **adapt**: infer what you can, skip what's irrelevant, stop once you
 can decide confidently.
 
