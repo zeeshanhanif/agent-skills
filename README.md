@@ -188,11 +188,21 @@ starts watching it.
 <a id="use"></a>
 ### Use
 
-In a Claude Code session, either let Claude trigger it automatically:
+Two ways in, depending on whether you ran `requirements-engineering` first.
+
+**In the pipeline** — with a `docs/srs.md` already in the repo, it designs from
+those requirements and only asks about the gaps:
+```text
+The requirements are in docs/srs.md — now design the architecture.
+```
+
+**Standalone** — no SRS yet, so it runs the full interview:
 ```text
 I'm building a multi-tenant inventory app for small retailers — help me architect it.
 ```
-or invoke it directly:
+
+Either way you can also invoke it directly — it auto-detects `docs/srs.md` (and
+`docs/use-cases.md`) if present, and falls back to the full interview if not:
 ```text
 /software-architecture
 ```
