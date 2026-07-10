@@ -58,7 +58,7 @@ handling, terminology consistency.
 ## Part B — Surfaces
 One subsection per surface. Repeat B for each.
 
-### B<n>. <Surface name>  *[essential per surface]*
+### B<n>. <Surface name> — surface code `<CODE>`  *[essential per surface]*
 - **Users and primary jobs** — who, in what context, and the top 3–7 jobs,
   **traced to the SRS user classes (§2.3) they come from** when an SRS exists.
 - **Information architecture & navigation** — the nav model and a **sitemap
@@ -66,8 +66,10 @@ One subsection per surface. Repeat B for each.
 - **Key user flows** — the critical journeys as **flow diagrams**, **citing the
   UC IDs they realize** when use-cases.md exists (e.g., "Checkout flow
   [UC-011]").
-- **Screen / page inventory** — the catalogue of screens with purpose and key
-  states. *(The handoff to implementation planning.)*
+- **Screen / page inventory** — the catalogue of screens, **each with a stable
+  `SCR-<CODE>-<NNN>` ID**, purpose, and key states. *(The handoff to
+  implementation planning; the per-slice ui-design step is told which screens
+  to design by these IDs.)*
 - **Surface-specific components** — what this surface adds beyond the core.
 - **Token overrides** — deviations from the shared tokens, with rationale (or
   "none", which is the healthy default).

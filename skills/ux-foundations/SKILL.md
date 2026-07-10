@@ -141,10 +141,12 @@ states, voice, and the accessibility standard (from the SRS NFRs, cited by ID).
 
 ### Phase 5 — Profile each surface (loop)
 
-Read `references/surface-profile-guide.md`. Per surface: users and jobs (from
-SRS user classes), IA and navigation, key flows (cite UC IDs where flows
-realize use cases), screen inventory, surface-specific components, token
-overrides.
+Read `references/surface-profile-guide.md`. Per surface: assign the surface code
+(confirm with the user), then users and jobs (from SRS user classes), IA and
+navigation, key flows (cite UC IDs where flows realize use cases), the screen
+inventory with **stable `SCR-<CODE>-<NNN>` IDs per screen** (same
+never-renumber rules as requirement IDs — downstream slices reference them),
+surface-specific components, token overrides.
 
 ### Phase 6 — Reconcile across surfaces
 
@@ -179,6 +181,8 @@ only — which is exactly what lets one core span web and native surfaces.
 
 - Personas trace to SRS user classes; the accessibility bar cites its NFR IDs;
   flows cite the UC IDs they realize (all source-gated, never fabricated).
+- Every screen has a stable `SCR-<CODE>-<NNN>` ID; no duplicates, no renumbering
+  — the inventory is the reference downstream slices and ui-design cite.
 - The mode question was asked explicitly; the chosen source's provenance and
   known gaps are recorded in design.md.
 - design.md is agent-ready: concrete values, states, usage rules — no vagueness.
