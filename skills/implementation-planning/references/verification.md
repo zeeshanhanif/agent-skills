@@ -60,6 +60,9 @@ it isn't a handoff.
 - The plan states which upstream documents were found/missing (fidelity note).
 - Priorities used in sequencing match the SRS's (no silently reassigned
   MoSCoW).
+- **RTM write-back done** (when `docs/rtm.md` exists): every FR a slice
+  implements or the foundations absorbed has its Plan ref filled; no other
+  column was touched.
 
 ## Reporting
 

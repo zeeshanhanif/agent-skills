@@ -46,8 +46,9 @@ exist.
   exception/alternate flows reveal failure-handling needs; the actor-to-use-case
   mapping reveals trust boundaries). It refines *how* the design realizes the
   requirements; it does not replace the SRS as the driver of *what*.
-- **RTM** — not consumed. The traceability matrix re-indexes the SRS and use
-  cases without adding input information; this skill ignores it.
+- **RTM** — not consumed as input (it re-indexes the SRS and use cases without
+  adding information), but **written back to at delivery**: this skill fills the
+  Design ref column for the requirements its ADRs address (see Phase 5).
 - **If no SRS is found**, fall back gracefully to the full elicitation interview
   (all seven rounds in `references/elicitation-guide.md`) — the skill stays fully
   usable standalone, for quick architecture work without a prior requirements
@@ -151,9 +152,21 @@ user prefers — ask).
 ### Phase 5 — Deliver
 
 Save the document to the repo (default `docs/architecture.md`, or wherever the
-user wants). Summarize the key decisions and the main risks in a few sentences
-in chat, and point to the diagrams. Offer concrete next steps: a `.docx` export
-for stakeholders, a deeper dive on any one decision, or scaffolding the initial
+user wants).
+
+**RTM write-back** (if `docs/rtm.md` exists; skip silently otherwise): fill the
+**Design ref** column for the requirements this architecture designed, per the
+layer rule — for **NFR rows**, the ADR(s) addressing them (an NFR's design *is*
+usually its ADR); for **FR rows**, an ADR ref **only** when that ADR's
+"Requirements addressed" field cites the FR (a genuine design response, not a
+mention — concrete per-slice refs come later from detailed-design). **Append
+into cells, never overwrite** other entries, and touch no other column — rows
+and requirement columns belong to requirements-engineering, Plan ref to
+planning, Test ref to testing.
+
+Summarize the key decisions and the main risks in a few sentences in chat, and
+point to the diagrams. Offer concrete next steps: a `.docx` export for
+stakeholders, a deeper dive on any one decision, or scaffolding the initial
 project structure to match the architecture.
 
 ## Output format
