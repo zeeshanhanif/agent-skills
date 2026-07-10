@@ -35,9 +35,28 @@ guide), but the names stay stable.
 - **Iconography.** Which icon set/style, stroke weight, default sizes.
 - **Motion.** Standard durations and easing for transitions, if motion matters.
 
-Express tokens as a table in the document. If the user wants a concrete artifact,
-emit them as CSS custom properties (`tokens.css`) and/or `tokens.json` — these
-can compile to both web and native, which is what lets one core span platforms.
+**Token architecture and outputs (not optional):** tokens are **semantic and
+role-based** — `color.primary`, `color.surface`, `space.md` — with raw values
+behind the roles, so theming (dark mode) and machine consumption work. They are
+emitted as `docs/tokens.json` in **W3C DTCG format** (the industry interchange
+standard; Style Dictionary and design tools transform it to CSS, Tailwind, and
+native formats), e.g.:
+
+```json
+{
+  "color": {
+    "primary": { "$type": "color", "$value": "#146128" },
+    "cta":     { "$type": "color", "$value": "#E8A020" }
+  },
+  "space": {
+    "md": { "$type": "dimension", "$value": "16px" }
+  }
+}
+```
+
+`docs/design.md` embeds the same values as CSS custom properties for direct
+agent use (see `design-md-guide.md`) — one source of truth, one convenience
+rendering. ux-foundations.md references design.md and never restates values.
 
 ## Core component inventory
 

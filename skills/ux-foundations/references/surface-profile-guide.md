@@ -16,6 +16,13 @@ per-surface elicitation. This frames every other decision in the profile — an
 internal admin used all day optimizes for speed and density; a public site for a
 first-time visitor optimizes for clarity and guidance.
 
+**Assign the surface code here.** Each surface gets a short, stable code used in
+its screen IDs — e.g., Admin Portal → `ADM`, Public Website → `WEB`, Mobile App
+→ `MOB`. Derive it sensibly, confirm with the user, and state it in the
+profile's header ("Admin Portal — surface code `ADM`"). With multiple similar
+surfaces, disambiguate (`WEB1`/`WEB2` is legal but prefer meaningful codes like
+`SHOP`/`CORP`). Codes never change once assigned.
+
 ## 2. Information architecture and navigation
 
 The structure of the surface: its top-level sections, how they're organized, and
@@ -38,12 +45,28 @@ edge cases (empty states, errors, permission boundaries) for critical flows.
 ## 4. Screen / page inventory
 
 The catalog of screens for this surface — the **most important handoff in the
-whole document**, because implementation planning slices features against it.
-List each screen with a one-line purpose and, where useful, its key states
-(empty / loading / error / populated) and the core or surface-specific components
-it composes. Organize by the IA sections. Aim for completeness of breadth (every
-screen a user can reach) even though each screen's detailed design comes later,
-per slice.
+whole document**, because implementation planning slices features against it and
+the per-slice ui-design step is told which screens to design by reference.
+
+**Every screen gets a unique, stable ID:** `SCR-<SURFACECODE>-<NNN>` (e.g.,
+`SCR-ADM-001`, `SCR-WEB-014`), numbered sequentially within the surface. The
+same stability rules as requirement IDs apply: an ID never changes or gets
+recycled once assigned; amendments add with the next free number, and removed
+screens are tombstoned (marked `Removed`), never renumbered — downstream slices
+reference these IDs.
+
+List each screen as: ID, name, one-line purpose, and, where useful, its key
+states (empty / loading / error / populated) and the core or surface-specific
+components it composes. A table works well:
+
+| ID | Screen | Purpose | Key states |
+| :-- | :----- | :------ | :--------- |
+| SCR-ADM-001 | Dashboard | At-a-glance ops overview | loading, empty |
+| SCR-ADM-002 | Orders List | Browse/filter all orders | empty, error |
+
+Organize by the IA sections. Aim for completeness of breadth (every screen a
+user can reach) even though each screen's detailed design comes later, per
+slice.
 
 ## 5. Surface-specific components
 

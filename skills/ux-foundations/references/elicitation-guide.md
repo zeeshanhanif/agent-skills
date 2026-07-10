@@ -1,10 +1,18 @@
 # Elicitation Guide
 
-The architecture document already answers a lot — the surfaces, the actors, the
-domain, the frontend constraints. **Read it first and infer everything you can.**
-Only ask about what's genuinely missing or what shapes the design and isn't
-derivable. As with architecture, a question is worth asking only if a different
-answer would lead to a different design.
+The upstream documents already answer a lot. **Read them first and infer
+everything you can**: the architecture gives the surfaces, actors, and frontend
+constraints; the SRS gives the user classes (§2.3 — **the personas source; confirm
+them, never re-elicit them**), the vision/tone (§1.2), the accessibility bar
+(§3.3 NFRs), and brand/compliance constraints (§2.5). Only ask what's genuinely
+missing or what shapes the design and isn't derivable. A question is worth asking
+only if a different answer would lead to a different design.
+
+Two mode-awareness rules: the **brand/visual-direction questions apply only in
+research mode** — in extract/ingest/tool modes the direction comes from the
+source, so those questions collapse to gap-filling (what the source doesn't
+show). And **never re-ask what a source already answered** — an ingested design
+file that defines the palette closes the palette question.
 
 Run two kinds of rounds: the **shared-core round** once for the whole product,
 and the **per-surface round** once for each surface. Adapt and stop when you can
