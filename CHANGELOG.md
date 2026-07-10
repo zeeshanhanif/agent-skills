@@ -7,6 +7,49 @@ This project does not yet publish tagged releases, so entries are grouped by dat
 
 ## [Unreleased]
 
+### Added
+- **`project-scaffolding`** skill — the first skill whose output is a running
+  system, not a document. Reads the architecture and implementation plan (plus
+  ux-foundations/design/tokens for the UI shell), runs each ecosystem's official
+  project generator per container, wires the walking skeleton end-to-end, stands
+  up engineering foundations deploy-ready but not deployed, and verifies
+  empirically by building and running the skeleton test. Checkpoints progress
+  and resumes safely — never regenerates over a partial scaffold.
+
+### Changed
+- **README** and **CLAUDE.md** updated for the five-skill pipeline
+  (requirements → architecture → ux-foundations → planning → scaffolding),
+  the RTM multi-writer contract, implementation-planning's full-pipeline
+  consumption, stable SCR IDs, and project-scaffolding.
+
+## [2026-07-11]
+
+### Changed
+- **`implementation-planning`** now consumes the **full pipeline** — SRS, use
+  cases, architecture, and ux-foundations (each degrading independently):
+  - Every slice traces **FR IDs** implemented, **UC IDs** realized, and **SCR
+    IDs** touched; tombstoned requirements and screens are skipped.
+  - A **Must-requirement coverage check** ensures every Must-priority FR and
+    inventory screen is sliced, placed in foundations, or explicitly excluded.
+  - SRS **MoSCoW priorities** break sequencing ties after dependency/risk
+    ordering.
+  - A mechanical **verification** pass (`verification.md`) before delivery.
+  - The first-slice spec names downstream handoffs to **ui-design** (screens by
+    SCR ID) and **detailed-design** (contracts/data).
+
+### Added
+- **RTM multi-writer column ownership** — the traceability matrix is now a
+  living ledger each phase fills at delivery:
+  - `requirements-engineering` owns rows and requirement columns; initializes
+    Design/Plan/Test refs as `_TBD_`.
+  - `software-architecture` writes **Design ref** (ADR refs per a layer rule:
+    NFR rows → ADR; FR rows → ADR only when genuinely cited).
+  - `implementation-planning` writes **Plan ref** (the scheduling slice).
+  - Every writer **appends, never overwrites**; skips silently when no RTM
+    exists (standalone runs).
+
+## [2026-07-10]
+
 ### Changed
 - **`ux-foundations`** substantially reworked along three axes:
   - **Inputs** — now consumes the SRS (`docs/srs.md`) and use-case document
@@ -23,10 +66,15 @@ This project does not yet publish tagged releases, so entries are grouped by dat
     `docs/ux-foundations.md` (plan-time; references the design system, never
     restates values), `docs/design.md` (render-time, agent-ready design system),
     and `docs/tokens.json` (canonical tokens in W3C DTCG format).
+- **`ux-foundations`** screen inventory now assigns every screen a stable
+  **`SCR-<CODE>-<NNN>` ID** per surface (same never-renumber/tombstone rules as
+  requirement IDs), so downstream slices and ui-design reference screens
+  precisely.
 
 ### Added
 - `ux-foundations` reference guides: `source-modes.md`, `design-md-guide.md`,
   and `design-tool-integrations.md`.
+- `CHANGELOG.md` — project changelog (Keep a Changelog format).
 
 ## [2026-07-01]
 
@@ -38,7 +86,7 @@ This project does not yet publish tagged releases, so entries are grouped by dat
     gaps; falls back to the full interview when no SRS exists (still usable
     standalone).
   - Also ingests `docs/use-cases.md` (secondary) to inform the runtime view and
-    resilience/security decisions; the RTM is intentionally not consumed.
+    resilience/security decisions; the RTM is not consumed as input.
   - Adds two-way requirement → decision traceability via a source-gated
     "Requirements addressed" field on ADRs (cite SRS/UC IDs only when those
     documents exist, prose otherwise — never fabricate an ID).
