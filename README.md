@@ -9,7 +9,7 @@ agents that follow the open `SKILL.md` standard).
 | :---- | :----------- |
 | [`requirements-engineering`](./skills/requirements-engineering) | The first SDLC step. Through an exhaustive, area-by-area interview it specifies the complete requirements, then produces a structured SRS (IEEE 29148 lineage), a use-case document, and a traceability matrix (markdown). Checkpoints so long sessions can resume, and later amends a finalized SRS with stable, never-recycled IDs. |
 | [`software-architecture`](./skills/software-architecture) | Interviews you about a new application, then produces a right-sized architecture document with C4 diagrams (Mermaid) and Architecture Decision Records. |
-| [`ux-foundations`](./skills/ux-foundations) | Reads your architecture document, then produces the UX foundations — a shared design core (brand, tokens, accessibility, voice) plus a per-surface profile (IA, navigation, key flows, screen inventory) for each UI surface. |
+| [`ux-foundations`](./skills/ux-foundations) | Reads your SRS + architecture, then acquires a visual direction (research, reference images, an existing design file, or a connected tool like Figma) and produces the UX foundations (personas, IA, navigation, flows, screen inventory per surface), an agent-ready `design.md`, and canonical `tokens.json` (W3C DTCG). |
 | [`implementation-planning`](./skills/implementation-planning) | Reads the architecture and UX-foundations docs and produces a sequenced build plan — epics and vertical feature slices, the walking skeleton, a dependency/risk-ordered sequence, and the first-slice spec. Stops at the plan; detailed design and code are downstream. |
 
 Run back-to-back, they form a greenfield requirements-to-build pipeline:
@@ -227,30 +227,36 @@ skills/software-architecture/
 ## `ux-foundations`
 
 The "architecture of the UI" — the design-phase sibling to
-`software-architecture`. It reads your finalized architecture document, then
-**derives the structure and design language of the UI** instead of jumping to
-pixel-perfect screens. The governing idea: **one shared core, defined once, plus
-a per-surface layer for each interface**, so a multi-surface product (admin
-portal, website, mobile app) feels like one thing without flattening the
-differences between surfaces.
+`software-architecture`. It reads your SRS and architecture, then **derives the
+structure and design language of the UI** instead of jumping to pixel-perfect
+screens. The governing idea: **one shared core, defined once, plus a per-surface
+layer for each interface**, so a multi-surface product (admin portal, website,
+mobile app) feels like one thing without flattening the differences between
+surfaces.
 
-**What you get**
-- A short interview for what the architecture doesn't cover (brand, voice,
-  accessibility bar, visual direction, per-surface users and device targets) —
-  inferred aggressively from the architecture, with defaults you can accept in a
-  word.
-- A **shared design core** defined once: brand and voice, **design tokens**
-  (color, typography, spacing, radius, iconography), the accessibility standard,
-  and cross-surface interaction principles.
-- A **per-surface profile** for each UI surface: its users and jobs, information
-  architecture and navigation, key user flows, a screen/page inventory, and the
-  surface-specific components and token overrides it needs.
-- **Sitemaps and user flows** embedded as Mermaid, so the whole thing is one
-  portable artifact that renders on GitHub.
+It draws personas straight from the SRS's user classes and treats the SRS's
+accessibility NFRs as a **non-negotiable bar** that overrides any imported
+design. The visual direction comes from one of **four source modes** you pick — it
+always asks, never assumes:
 
-**Outputs** default to a single `docs/ux-foundations.md`; on request it can also
-emit a real design-tokens file (`tokens.css` / `tokens.json`) or one or two
-anchor screen mockups to settle the visual direction.
+- **Research** a new direction (comparable products, current conventions, your
+  audience) when there's no existing design;
+- **Extract from reference images** you drop in `docs/design-refs/`;
+- **Ingest an existing design file** or brand book and map it onto the structure;
+- **Connect a design tool** (e.g. Figma via MCP) and pull tokens/styles/components.
+
+**What you get** — three outputs with a strict source-of-truth split:
+- `docs/ux-foundations.md` — the **plan-time** document: personas, per-surface
+  information architecture and navigation, key user flows, screen inventories,
+  and cross-surface reconciliation, with **sitemaps and flows as Mermaid**. This
+  is what implementation-planning consumes; it *references* the design system
+  rather than restating it.
+- `docs/design.md` — the **render-time**, agent-ready design system a coding
+  agent loads when building UI: tokens (with inline CSS variables), component
+  specs with states and variants, layout/accessibility/usage rules, and
+  provenance. Reference it from your `CLAUDE.md` so every UI session inherits it.
+- `docs/tokens.json` — the canonical machine-readable tokens in **W3C DTCG
+  format**, the single source of truth that `design.md`'s CSS is derived from.
 
 > Install with `npx skills add ... --skill ux-foundations`, or copy it in by hand
 > following [Manual install (Claude Code)](#install-claude-code) above (swap
@@ -258,7 +264,9 @@ anchor screen mockups to settle the visual direction.
 
 ### Use
 
-Run it after the architecture is settled — let Claude trigger it automatically:
+Run it after the architecture is settled — let Claude trigger it automatically
+(it reads `docs/srs.md` + `docs/architecture.md` and asks how you want the design
+sourced):
 ```text
 The architecture's done — help me set up the UX foundations and design system.
 ```
@@ -271,11 +279,14 @@ or invoke it directly:
 
 ```text
 skills/ux-foundations/
-├── SKILL.md                        # 7-phase workflow + triggering
+├── SKILL.md                        # 8-phase workflow + triggering
 └── references/
-    ├── elicitation-guide.md        # UX interview, infer from architecture first
+    ├── elicitation-guide.md        # UX interview; personas from the SRS
+    ├── source-modes.md             # the 4 design-source acquisition modes
+    ├── design-tool-integrations.md # Mode 4: pulling from Figma etc. via MCP
     ├── design-system-guide.md      # the shared core: tokens, a11y, voice
     ├── surface-profile-guide.md    # per-surface layer: IA, flows, components
+    ├── design-md-guide.md          # the render-time, agent-ready design.md
     ├── document-template.md        # shared core + one section per surface
     └── diagram-guide.md            # sitemaps + user flows in Mermaid
 ```
