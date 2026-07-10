@@ -10,10 +10,11 @@ agents that follow the open `SKILL.md` standard).
 | [`requirements-engineering`](./skills/requirements-engineering) | The first SDLC step. Through an exhaustive, area-by-area interview it specifies the complete requirements, then produces a structured SRS (IEEE 29148 lineage), a use-case document, and a traceability matrix (markdown). Checkpoints so long sessions can resume, and later amends a finalized SRS with stable, never-recycled IDs. |
 | [`software-architecture`](./skills/software-architecture) | Interviews you about a new application, then produces a right-sized architecture document with C4 diagrams (Mermaid) and Architecture Decision Records. |
 | [`ux-foundations`](./skills/ux-foundations) | Reads your SRS + architecture, then acquires a visual direction (research, reference images, an existing design file, or a connected tool like Figma) and produces the UX foundations (personas, IA, navigation, flows, screen inventory per surface), an agent-ready `design.md`, and canonical `tokens.json` (W3C DTCG). |
-| [`implementation-planning`](./skills/implementation-planning) | Reads the architecture and UX-foundations docs and produces a sequenced build plan — epics and vertical feature slices, the walking skeleton, a dependency/risk-ordered sequence, and the first-slice spec. Stops at the plan; detailed design and code are downstream. |
+| [`implementation-planning`](./skills/implementation-planning) | Reads the full pipeline (SRS, use cases, architecture, UX-foundations) and produces a sequenced build plan — epics and vertical feature slices (each tracing its FR/UC/screen IDs), the walking skeleton, a dependency/risk-ordered sequence, a Must-requirement coverage check, and the first-slice spec. Stops at the plan; detailed design and code are downstream. |
+| [`project-scaffolding`](./skills/project-scaffolding) | Turns the design docs into a **running system**: runs each ecosystem's official generator, wires the walking skeleton end-to-end (UI shell with your tokens → API → domain → local DB), stands up CI/test/deploy config, and verifies by building and running it. Deploy-ready, not deployed. |
 
-Run back-to-back, they form a greenfield requirements-to-build pipeline:
-`requirements-engineering` → `software-architecture` → `ux-foundations` → `implementation-planning`.
+Run back-to-back, they form a greenfield requirements-to-running-skeleton pipeline:
+`requirements-engineering` → `software-architecture` → `ux-foundations` → `implementation-planning` → `project-scaffolding`.
 
 ## Install
 
@@ -247,10 +248,11 @@ always asks, never assumes:
 
 **What you get** — three outputs with a strict source-of-truth split:
 - `docs/ux-foundations.md` — the **plan-time** document: personas, per-surface
-  information architecture and navigation, key user flows, screen inventories,
-  and cross-surface reconciliation, with **sitemaps and flows as Mermaid**. This
-  is what implementation-planning consumes; it *references* the design system
-  rather than restating it.
+  information architecture and navigation, key user flows, screen inventories
+  (each screen with a stable **SCR ID**), and cross-surface reconciliation, with
+  **sitemaps and flows as Mermaid**. This is what implementation-planning consumes
+  (slices trace those SCR IDs); it *references* the design system rather than
+  restating it.
 - `docs/design.md` — the **render-time**, agent-ready design system a coding
   agent loads when building UI: tokens (with inline CSS variables), component
   specs with states and variants, layout/accessibility/usage rules, and
@@ -295,8 +297,8 @@ skills/ux-foundations/
 
 ## `implementation-planning`
 
-The bridge from design to construction. It reads the two design-phase documents —
-the architecture and the UX foundations — and **turns them into a sequenced,
+The bridge from design to construction. It reads the **full pipeline** — the SRS,
+use cases, architecture, and UX foundations — and **turns them into a sequenced,
 executable build plan** instead of a wish-list. Two principles govern it: **slice
 vertically** (every unit of work cuts through UI, API, domain, and data to deliver
 something demonstrable — never "build all the tables"), and **make the
@@ -306,21 +308,25 @@ the easiest feature, then sequence the rest by dependency and risk).
 **What you get**
 - A brief priorities check for what isn't already in the documents (what "first"
   should optimize for, any deadline or MVP cut line, team capacity).
-- An **epic + feature breakdown** — thin vertical slices, each mapped to the
-  screens it touches (from ux-foundations) and the building blocks/endpoints it
-  needs (from the architecture).
+- An **epic + feature breakdown** — thin vertical slices, each tracing the **FR
+  IDs** it implements, the **UC IDs** it realizes, and the **screen (SCR) IDs** it
+  touches, plus the building blocks/endpoints it needs. Tombstoned (removed)
+  requirements and screens are skipped.
 - A **walking-skeleton** definition: the minimal end-to-end path that proves the
   system runs and deploys, with what's real vs. stubbed called out.
 - A **risk- and dependency-ordered sequence** with a Mermaid dependency graph,
   the **first vertical slice** specified (acceptance criteria, screens,
   endpoints), and an **engineering-foundations** checklist.
+- A **Must-requirement coverage check** — every Must-priority requirement lands in
+  a slice or is consciously deferred, so nothing silently falls through.
 
 It plans the whole app's breadth but only details what's next — full depth on the
 first/near slices, coarse further out (depth-on-demand, not the waterfall trap).
 
 **Outputs** default to a single `docs/implementation-plan.md`; on request the same
 features can additionally be emitted as paste/import-ready issues (GitHub / Linear
-/ Jira).
+/ Jira). If a `docs/rtm.md` exists, it also fills in that matrix's **Plan** column
+(which slice schedules each requirement).
 
 > Install with `npx skills add ... --skill implementation-planning`, or copy it in
 > by hand following [Manual install (Claude Code)](#install-claude-code) above
@@ -342,12 +348,73 @@ or invoke it directly:
 
 ```text
 skills/implementation-planning/
-├── SKILL.md                        # 8-phase workflow + triggering
+├── SKILL.md                        # 9-phase workflow + triggering
 └── references/
     ├── slicing-guide.md            # epics + thin vertical feature slices
     ├── sequencing-guide.md         # walking skeleton, dependency/risk order
+    ├── verification.md             # Must-requirement coverage + RTM write-back
     ├── document-template.md        # plan structure, right-sizing rules
     └── diagram-guide.md            # dependency graph in Mermaid
+```
+
+---
+
+## `project-scaffolding`
+
+The first skill whose output is a **running system, not a document**. It reads the
+architecture and the implementation plan and turns the walking skeleton into a real
+repo: generated structure, wired end-to-end, foundations in place, verified by
+execution. It ends where deployment begins — everything is deploy-*ready*; the
+first actual deploy is your step. Three principles govern it: **the stack is an
+input, never a decision** (the architecture's ADRs already chose it — gaps go back
+as candidate amendments); **official generators first** (it discovers each
+ecosystem's current official initializer, verifies its flags against live docs, and
+runs it for real, so the skill stays self-updating as frameworks change); and **it
+owns the stack-independent layer** (the wiring between units, module boundaries, the
+design system in the UI shell, and empirical verification).
+
+**What you get**
+- A **real repo** (monorepo by default) — one deployable unit per architecture
+  container, module boundaries enforced with folder + import/lint rules, generator
+  boilerplate reconciled with the architecture, and `docs/` carried in.
+- A **wired walking skeleton**: UI shell (your `tokens.json` wired into each
+  frontend, `design.md` referenced) → API → domain stub → local database → back,
+  stubbed exactly where the plan said.
+- **Engineering foundations** stood up: CI (lint/test/build), environment configs,
+  observability hooks, a test harness with one end-to-end skeleton test, and
+  deployment config *written but not executed*.
+- **Empirical verification** — a clean install builds, the skeleton test passes
+  locally, boundary rules hold, and tokens actually render; anything unfixable is
+  flagged, never silently shipped.
+- An **agent-instructions file** (CLAUDE.md or equivalent) pointing at the pipeline
+  docs and `design.md`, plus `docs/scaffold-notes.md` recording the generators,
+  versions, and flags actually used.
+
+> Install with `npx skills add ... --skill project-scaffolding`, or copy it in by
+> hand following [Manual install (Claude Code)](#install-claude-code) above (swap
+> `software-architecture` for `project-scaffolding`).
+
+### Use
+
+Run it after the plan is settled — let Claude trigger it automatically:
+```text
+The plan's ready — scaffold the repo and stand up the walking skeleton.
+```
+or invoke it directly:
+```text
+/project-scaffolding
+```
+
+### What's inside
+
+```text
+skills/project-scaffolding/
+├── SKILL.md                        # 9-phase workflow (checkpointed) + triggering
+└── references/
+    ├── checkpointing.md            # resume safely; never regenerate over a partial scaffold
+    ├── scaffolding-guide.md        # official-generator discovery + repo structure
+    ├── skeleton-guide.md           # wiring the skeleton + engineering foundations
+    └── verification.md             # empirical checks: build it, run it, prove it
 ```
 
 ---
