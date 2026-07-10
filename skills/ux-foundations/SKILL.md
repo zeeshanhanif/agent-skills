@@ -2,144 +2,186 @@
 name: ux-foundations
 description: >-
   Establishes the UX and design foundations for an application before feature
-  work begins — the "architecture of the UI." Reads a finalized architecture
-  document, then produces a shared design core (brand, design tokens,
-  accessibility, voice) plus a per-surface profile (users, information
-  architecture, navigation, key user flows, screen inventory, surface-specific
-  components) for each UI surface such as an admin portal, public website, or
-  mobile app. Use this in the design phase, as a sibling to software
-  architecture and before implementation planning, whenever a new application
-  with one or more user interfaces is being designed. Trigger on phrases like
-  "design the UX foundations", "set up the design system", "what should the UI
-  look like", "plan the screens and navigation", "create the design language",
-  or any point after the architecture is settled and the UI structure needs
-  defining.
+  work begins — the "architecture of the UI." Consumes the upstream SRS
+  (docs/srs.md) and architecture document (docs/architecture.md) when present,
+  then builds the design system from one of four user-chosen source modes:
+  research a new direction, extract from reference images, ingest an existing
+  design file, or pull from a connected design tool (e.g., Figma via MCP).
+  Produces docs/ux-foundations.md (personas, IA, navigation, flows, screen
+  inventory per surface), docs/design.md (agent-ready design system: tokens,
+  components, states, layout and usage rules), and tokens.json (W3C DTCG).
+  Use in the design phase, after architecture and before implementation
+  planning, for any application with one or more UI surfaces. Trigger on
+  "design the UX foundations", "set up the design system", "what should the
+  UI look like", "plan the screens and navigation", or "create the design
+  language".
 ---
 
 # UX Foundations
 
 This skill defines the **structure and design language of the UI** before any
 feature is built — the counterpart to a software-architecture document, but for
-the experience layer. It does not produce pixel-perfect screen designs; it
-produces the *system* those screens are later assembled from.
+the experience layer. It produces the *system* screens are later assembled
+from, not pixel-perfect screens.
 
-The governing idea, especially when an app has several interfaces: **one shared
-core, defined once, plus a per-surface layer for each interface.** A single
-design language (brand, tokens, accessibility, voice) spans every surface so the
-product feels like one thing; each surface (admin portal, website, mobile app)
-then gets its own profile because its users, navigation, components, and
-interaction context genuinely differ. Not one monolith that flattens the
-differences, and not independent design systems that drift apart.
+The governing idea, especially with several interfaces: **one shared core,
+defined once, plus a per-surface layer for each interface.** A single design
+language spans every surface so the product feels like one thing; each surface
+(admin portal, website, mobile app) gets its own profile because its users,
+navigation, components, and context genuinely differ.
 
-## Input
+## Inputs
 
-This skill consumes the architecture document produced upstream.
+Two kinds of input with **different consumption rules**:
 
-- If the user provides a path, use it.
-- **Otherwise default to `docs/architecture.md`.**
-- If no architecture document is found, tell the user, and offer to either point
-  to the right path or proceed in a reduced mode where you elicit the surfaces
-  and users directly (the output will be weaker without the architecture's
-  context, so prefer locating the document).
+**Pipeline documents — read silently, never ask.** These are this pipeline's own
+upstream artifacts in their contracted locations; consuming them is the pipeline
+working as designed.
 
-From the architecture, extract: the **UI surfaces** (they appear as building
-blocks / containers — e.g., "Admin Portal", "Web App", "Mobile App"), the
-**user types / actors** (from the context diagram), UX-relevant **quality
-attributes** (accessibility, latency/performance that shape perceived
-experience), **constraints** (existing brand, mandated frontend stack), and the
-**domain and features** that the UI must express.
+- **SRS** — default `docs/srs.md`. Read §2.3 (user classes & characteristics —
+  the personas source; do not re-elicit them), §1.2 (vision/scope), the
+  accessibility/usability NFRs in §3.3 (**the accessibility bar comes from
+  here and is non-negotiable** — it overrides any ingested design), and any
+  brand/compliance constraints in §2.5. Note NFR IDs for citation.
+- **Architecture** — default `docs/architecture.md`. Read the UI surfaces (they
+  appear as containers/building blocks), the context diagram's actors, and any
+  frontend stack constraints.
+- **Use cases** — `docs/use-cases.md` if present: key user flows often realize
+  use cases; cite UC IDs where they do.
+
+**Source-gated traceability** (same rule as the architecture skill): cite SRS
+NFR/FR IDs and UC IDs only when those documents exist; otherwise state drivers
+in prose. Never fabricate an ID.
+
+**Design source — always ask, never assume.** Detection tells you what's
+*possible*; only the user can tell you what's *wanted*. A design.md in the
+folder may be stale; images may be leftovers; the user may want a fresh
+direction despite having sources. See Phase 1.
+
+**Fallback:** if the pipeline documents are missing, say so and elicit surfaces
+and users directly (reduced mode) — the skill stays usable standalone.
+
+## Outputs
+
+Three files, with a strict **authority split**:
+
+1. `docs/ux-foundations.md` — the **plan-time** document: personas, per-surface
+   IA and navigation, key user flows, screen inventories, cross-surface
+   reconciliation. This is what implementation-planning consumes. It
+   *references* design.md for anything design-system and never restates token
+   values — design.md is the single source of truth for those.
+2. `docs/design.md` — the **render-time** document a coding agent loads when
+   building UI: tokens (with inline CSS-variable form), component specs with
+   states and variants (including per-surface variants), layout/grid rules,
+   accessibility rules, do/don'ts, agent quick-reference, provenance and known
+   gaps. See `references/design-md-guide.md`.
+3. `docs/tokens.json` — the canonical machine-readable tokens in **W3C DTCG
+   format** (industry-standard interchange; transforms to CSS/Tailwind/native
+   downstream). design.md's CSS block is derived from it — same values, one
+   source of truth.
 
 ## Workflow
 
-### Phase 1 — Ingest and frame
+### Phase 1 — Ingest, detect, and ask the mode question
 
-1. Read the architecture document (per **Input** above) and pull out the surface
-   list, actors, constraints, and domain.
-2. Play back the surfaces you found and confirm the set ("I see three UI
-   surfaces: an admin portal, a public website, and a mobile app — is that the
-   full list?"). Surfaces are the spine of everything that follows.
+1. **Silently ingest pipeline documents** (per Inputs): surfaces and actors from
+   the architecture, user classes and the accessibility bar from the SRS.
+2. **Detect candidate design sources**: a design file (`design.md` or similar)
+   in the project, reference images **in `docs/design-refs/` only** (the
+   convention location — no design-refs folder or no images there means images
+   are treated as not present; do not scan the wider project), connected
+   design-tool MCPs (Figma etc.). User-provided paths or attached images always
+   win over detection. Detection is for *presenting options*, not for deciding.
+3. **Always ask the mode question** — even when nothing is found, and even when
+   exactly one source is found. Report what was detected, then offer the full
+   menu with detected sources as named concrete options:
+   - **Research** — no design source; research and propose a direction
+     (comparable products, current conventions, the SRS's audience) before
+     tokenizing. Degrade gracefully to expertise-based proposal without web
+     access.
+   - **Extract from images** — reference images from `docs/design-refs/` (if
+     detected) or paths/attachments the user supplies; if the mode is chosen
+     and no images are available, ask for them — never hunt the wider project.
+     Extract palette, type feel, spacing, component shapes.
+   - **Ingest a design file** — user provides (or confirms detected) an
+     external design.md/brand document; map it onto our structure.
+   - **Connect a design tool** — pull tokens/styles/components via MCP.
+   Folded variants: brand guidelines (PDF brand book) → ingest variant;
+   existing codebase (CSS/Tailwind config) → extract variant, highest
+   fidelity; mandated component framework (Material, shadcn) → one elicitation
+   question in any mode, constrains the component layer.
+   The user's explicit choice also resolves multi-source conflicts; within the
+   chosen source, `references/source-modes.md` governs. **SRS accessibility
+   NFRs override every mode's output.**
+4. Confirm the surface list from the architecture ("I see three UI surfaces:
+   admin portal, public website, mobile app — correct?"). Surfaces are the
+   spine of everything downstream.
 
 ### Phase 2 — Elicit the UX specifics
 
-Read `references/elicitation-guide.md` and run a short interview for what the
-architecture doesn't cover. Same philosophy as the architecture skill: ask in
-batches, infer aggressively from the architecture and state your inferences,
-offer defaults the user can accept in a word, and let them dump a brief if they
-have one. Cover the shared-core questions once (brand, voice, accessibility bar,
-visual direction, existing design system) and the per-surface questions for each
-surface (who uses it, their primary jobs, device/responsive targets).
+Read `references/elicitation-guide.md`. Personas come from SRS §2.3 — confirm,
+don't re-elicit. Ask only what upstream doesn't answer: per-surface device and
+responsive targets, brand feel (research mode), voice/tone, i18n. Batch
+questions, state inferences, offer one-word defaults.
 
-### Phase 3 — Establish the shared core (once)
+### Phase 3 — Acquire the design direction (mode-specific)
 
-Read `references/design-system-guide.md` and define the parts that span every
-surface: brand and voice, **design tokens** (color, typography scale, spacing,
-radius, iconography), the **accessibility standard**, and the cross-surface
-interaction principles. This is the single source of truth that makes the
-surfaces feel like one product.
+Read `references/source-modes.md` and run the chosen mode's acquisition
+protocol. For connected tools, `references/design-tool-integrations.md` has
+per-tool guidance with a generic fallback. Every mode ends the same way: a
+**proposed design direction played back for confirmation** (extraction is
+approximation; ingestion has conflicts to surface; research is a proposal).
+Never assert — confirm.
 
-### Phase 4 — Profile each surface (loop)
+### Phase 4 — Establish the shared core (once)
 
-Read `references/surface-profile-guide.md`. For **each** surface, produce a
-profile: its users and primary jobs, its **information architecture and
-navigation** (a sitemap), its **key user flows**, its **screen/page inventory**,
-and the **surface-specific components and token overrides** it needs on top of
-the shared core. Scale the depth to how much the surface actually diverges — two
-web surfaces may share a component library and differ mostly in IA, while a
-native mobile app warrants its own component layer and platform-convention notes.
+Read `references/design-system-guide.md`. Codify the confirmed direction into
+the shared core: semantic role-based tokens, core component inventory with
+states, voice, and the accessibility standard (from the SRS NFRs, cited by ID).
 
-### Phase 5 — Reconcile across surfaces
+### Phase 5 — Profile each surface (loop)
 
-Resolve the cross-cutting questions: which components are **truly shared** (live
-in the core) versus **surface-specific**, which **flows span surfaces** (e.g.,
-act on the web, get notified on mobile), and the consistency rules that keep the
-surfaces coherent without forcing a desktop pattern onto mobile.
+Read `references/surface-profile-guide.md`. Per surface: users and jobs (from
+SRS user classes), IA and navigation, key flows (cite UC IDs where flows
+realize use cases), screen inventory, surface-specific components, token
+overrides.
 
-### Phase 6 — Document and diagram
+### Phase 6 — Reconcile across surfaces
 
-Read `references/document-template.md` and write the UX-foundations document.
-Read `references/diagram-guide.md` and embed the **sitemaps** and **key user
-flows** as Mermaid, so the document is one portable artifact. Right-size it: a
-single-surface tool gets a tight doc; a multi-surface product gets the shared
-core plus a section per surface.
+Shared vs. surface-specific components, flows that span surfaces, consistency
+rules.
 
-### Phase 7 — Deliver
+### Phase 7 — Generate the three outputs
 
-Save to `docs/ux-foundations.md` by default (or where the user wants). Summarize
-the design direction and the surface set in a few sentences, and point out that
-the **screen inventory is the handoff to implementation planning** — it's what
-lets planning slice features vertically across backend and UI. Offer concrete
-next steps: emit a real design-tokens file (CSS variables / JSON), produce one
-or two anchor screen mockups to lock the visual direction, or proceed to
-implementation planning.
+1. `docs/tokens.json` — DTCG format, per the design-system guide.
+2. `docs/design.md` — per `references/design-md-guide.md`, deriving the CSS
+   block from tokens.json.
+3. `docs/ux-foundations.md` — per `references/document-template.md`, with
+   embedded Mermaid sitemaps and flow diagrams (see
+   `references/diagram-guide.md`), referencing design.md rather than restating
+   it.
 
-## Output format
+### Phase 8 — Deliver
 
-Default to a single Markdown file (`docs/ux-foundations.md`) with embedded
-Mermaid sitemaps and flow diagrams, and tokens/component inventories as
-structured tables. Optional, on request:
-- **A design-tokens file** — `tokens.css` (CSS custom properties) or
-  `tokens.json`, as a concrete artifact the frontend build can consume.
-- **Anchor mockups** — one or two key screens rendered to settle visual
-  direction, when the product is design-led enough to justify it early.
+Summarize the design direction, the surface set, and the three outputs. Note
+the handoffs: the **screen inventory** feeds implementation-planning; **design.md
++ tokens.json** feed every UI-building session downstream (suggest referencing
+design.md from CLAUDE.md). Offer next steps: anchor screen mockups, or proceed
+to implementation-planning.
 
 ## Scope boundaries
 
-This skill defines the system and the structure. It deliberately does **not**:
-- produce pixel-perfect, per-feature screen designs — those happen per slice in
-  the detailed-design step, assembled from this system;
-- generate frontend component code — that's implementation.
-
-Staying at the system/spec level is what lets the shared core span platforms:
-the same tokens compile to web and native even though components are built
-differently on each.
+Does **not** produce pixel-perfect per-feature screens (per-slice detailed
+design, downstream) or frontend component code (build). System and structure
+only — which is exactly what lets one core span web and native surfaces.
 
 ## What good looks like
 
-- One coherent shared core, with per-surface layers that diverge only where the
-  context truly demands it.
-- Every design choice traces back to a user, a job, or a constraint — never
-  decoration for its own sake.
-- A complete, per-surface screen inventory that implementation planning can
-  slice against.
-- Diagrams render on the first try (see the diagram guide's reliability notes).
-- Right-sized: structural and decision-dense, not a 60-page style bible.
+- Personas trace to SRS user classes; the accessibility bar cites its NFR IDs;
+  flows cite the UC IDs they realize (all source-gated, never fabricated).
+- The mode question was asked explicitly; the chosen source's provenance and
+  known gaps are recorded in design.md.
+- design.md is agent-ready: concrete values, states, usage rules — no vagueness.
+- tokens.json, design.md's CSS block, and ux-foundations.md never disagree,
+  because value authority lives in tokens.json/design.md alone.
+- One coherent core; per-surface layers diverge only where context demands.

@@ -14,39 +14,42 @@ Use this structure:
 ```markdown
 # UX Foundations: <Product Name>
 
-> Status: Draft | Reviewed · Last updated: <date> · Source: docs/architecture.md
+> Status: Draft | Reviewed · Last updated: <date>
+> Sources: docs/srs.md · docs/architecture.md · docs/use-cases.md
+> Design system: **docs/design.md + docs/tokens.json** (single source of truth
+> for all design values — this document references, never restates)
 
 ## 1. Overview  *[essential]*
 One paragraph: what the product is, and the list of UI **surfaces** this document
 covers (admin portal, website, mobile app, …) with one line on who each is for.
-This surface list is the spine of the document.
+This surface list is the spine of the document. Note the design-source mode used
+(research / images / design file / tool).
 
 ---
 
-## Part A — Shared Core
-The single design language inherited by every surface.
+## Part A — Shared Core (summary; authority lives in design.md)
+The single design language inherited by every surface. **This part summarizes
+direction and links to design.md — it does not restate token values or component
+specs.** Keeping value authority in one file is what prevents drift.
 
 ### A1. Brand and visual direction  *[essential]*
-The visual personality in a few lines, plus any existing brand being codified.
+The visual personality in a few lines, the design-source provenance, and a link
+to design.md §1.
 
 ### A2. Voice and tone  *[essential]*
-The product's voice and how tone flexes by context. A couple of do/don't pairs.
+The product's voice and how tone flexes by context (full microcopy rules:
+design.md §6).
 
-### A3. Design tokens  *[essential]*
-Color (by semantic role), typography (families + scale), spacing, radius,
-elevation, iconography, motion — as tables. Note dark mode if in scope. This is
-the heart of the core.
+### A3. Design language summary  *[essential]*
+One short paragraph characterizing the palette, type, and density — **then defer:
+tokens live in design.md §2 / tokens.json; components and states in design.md
+§4.** No value tables here.
 
-### A4. Core component inventory  *[essential]*
-The genuinely shared components, each with a one-line responsibility and its
-states. Plus the shared state conventions (default/hover/focus/active/disabled/
-loading/error) and the empty/loading/error patterns for data views.
+### A4. Accessibility standard  *[essential]*
+The target, **citing the SRS NFR ID(s) it comes from** (e.g., WCAG 2.2 AA per
+NFR-USE-001; prose if no SRS). Mechanical rules: design.md §5.
 
-### A5. Accessibility standard  *[essential]*
-The target (e.g., WCAG 2.2 AA) made concrete as system-wide rules: contrast,
-focus visibility, target sizes, keyboard operability, semantics, reduced motion.
-
-### A6. Cross-surface principles  *[scale]*
+### A5. Cross-surface principles  *[scale]*
 Product-wide interaction rules: destructive-action confirmation, update/error
 handling, terminology consistency.
 
@@ -56,10 +59,13 @@ handling, terminology consistency.
 One subsection per surface. Repeat B for each.
 
 ### B<n>. <Surface name>  *[essential per surface]*
-- **Users and primary jobs** — who, in what context, and the top 3–7 jobs.
+- **Users and primary jobs** — who, in what context, and the top 3–7 jobs,
+  **traced to the SRS user classes (§2.3) they come from** when an SRS exists.
 - **Information architecture & navigation** — the nav model and a **sitemap
   diagram**.
-- **Key user flows** — the critical journeys as **flow diagrams**.
+- **Key user flows** — the critical journeys as **flow diagrams**, **citing the
+  UC IDs they realize** when use-cases.md exists (e.g., "Checkout flow
+  [UC-011]").
 - **Screen / page inventory** — the catalogue of screens with purpose and key
   states. *(The handoff to implementation planning.)*
 - **Surface-specific components** — what this surface adds beyond the core.
