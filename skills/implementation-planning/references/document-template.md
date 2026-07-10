@@ -12,7 +12,8 @@ Use this structure:
 # Implementation Plan: <System Name>
 
 > Status: Draft | Reviewed · Last updated: <date>
-> Inputs: docs/architecture.md · docs/ux-foundations.md
+> Inputs: docs/srs.md · docs/use-cases.md · docs/architecture.md ·
+> docs/ux-foundations.md   (note any missing — fidelity is reduced without them)
 
 ## 1. Overview  *[essential]*
 One paragraph on what's being built and the plan's shape. State the top priority
@@ -27,13 +28,19 @@ pipeline is green, the UI shell with the design system is live).
 ## 3. Epic & Feature Breakdown  *[essential]*
 The whole-app map. For each **epic** (aligned to an architecture building block),
 list its **features** (vertical slices). For each feature, a one-line value
-statement plus its touchpoints:
-- **Screens** (from the ux-foundations inventory; note the surface)
+statement plus its **traced touchpoints** (IDs source-gated; prose when a source
+document is absent):
+- **FRs implemented** (SRS IDs, e.g., FR-AUTH-001..003; note "partial" if split)
+- **UCs realized** (e.g., UC-004)
+- **Screens** (SCR IDs, surface visible in the ID, e.g., SCR-WEB-004)
 - **Building blocks / endpoints** (from the architecture)
 - **Data** (entities read/written)
-- **Flow served**
 Near features are detailed; far ones are a title plus touchpoints. A table per
-epic works well.
+epic works well:
+
+| Feature | FRs | UCs | Screens | Blocks/Endpoints | Data |
+| :------ | :-- | :-- | :------ | :--------------- | :--- |
+| Sign-in | FR-AUTH-002..004 | UC-002 | SCR-WEB-002 | API: /auth/login | User, Session |
 
 ## 4. Build Sequence  *[essential]*
 The ordered slices, with the **dependency + risk** reasoning that sets the order.
@@ -43,10 +50,13 @@ systems, group into phases/milestones, each a demonstrable increment.
 ## 5. First Vertical Slice  *[essential]*
 The next thing to build after the skeleton, specified enough to scope and assign:
 - the user flow it exercises and why it was chosen (value / risk)
-- acceptance criteria (what "done" means)
-- the screens it renders and the endpoints/data it needs
-*Not* full detailed design — that's the downstream per-slice step. This section
-is the handoff to it.
+- acceptance criteria (derived from its FRs' statements and UC flows)
+- **screens it renders, by SCR ID — this list is the input to the downstream
+  ui-design step**
+- **endpoints/data/contract needs — this list is the input to the downstream
+  detailed-design step**
+*Not* full detailed design or screen design — those are the two per-slice
+downstream steps this section hands off to, by name.
 
 ## 6. Engineering Foundations  *[essential]*
 A checklist of what to stand up alongside the skeleton, derived from the inputs:
@@ -56,8 +66,10 @@ setup (from ux-foundations).
 
 ## 7. Risks & Assumptions  *[essential]*
 Sequencing risks, assumptions the plan rests on, and what would force a
-re-order. Note explicitly that phases beyond the near term are a living order,
-not fixed commitments.
+re-order. **Open coverage gaps** land here with their IDs — Must FRs or screens
+the escalation ladder couldn't resolve (self-resolve → user → report). Note
+explicitly that phases beyond the near term are a living order, not fixed
+commitments.
 ```
 
 ---

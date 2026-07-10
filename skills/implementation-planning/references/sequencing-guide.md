@@ -27,7 +27,8 @@ attach.
 
 ## Order by dependency, then risk
 
-Within the remaining slices, two forces set the order:
+Within the remaining slices, two forces set the order, with a third as
+tiebreaker:
 
 - **Dependency** — foundational capabilities before the things that need them.
   Auth and the identity model, the core data layer, and shared domain primitives
@@ -40,8 +41,11 @@ Within the remaining slices, two forces set the order:
   is going to break, you want it to break in week two, not month four.
 
 When dependency and risk disagree, let risk win for anything that could force a
-re-architecture, and dependency win for ordinary build order. Make the reasoning
-visible so the sequence isn't arbitrary.
+re-architecture, and dependency win for ordinary build order. **SRS priorities
+(MoSCoW) are the tiebreaker within those constraints**: among slices that
+dependency and risk leave unordered, Must-FR slices come before Should before
+Could — the plan should reach "all Musts shipped" as early as the structure
+allows. Make the reasoning visible so the sequence isn't arbitrary.
 
 ## The first vertical slice
 
