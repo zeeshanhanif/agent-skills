@@ -152,10 +152,20 @@ anything unfixable.
 ### Phase 9 — Document and deliver
 
 Read `references/document-template.md` and write the plan to
-`docs/implementation-plan.md`. Summarize the build order, the first slice, and
-any open coverage gaps. Note the handoffs: first-slice screens → **ui-design**;
-first-slice contracts/data → **detailed-design**. Offer next steps: scaffold
-the walking skeleton, or run detailed design on the first slice.
+`docs/implementation-plan.md`.
+
+**RTM write-back** (if `docs/rtm.md` exists; skip silently otherwise): fill the
+**Plan ref** column for every requirement a slice implements or the foundations
+absorb — the slice name (e.g., `Slice: Sign-in`) or `Foundations`. **Append
+into cells, never overwrite**, and touch only Plan ref: rows and requirement
+columns belong to requirements-engineering, Design ref to
+architecture/detailed-design, Test ref to testing. Scheduling is not design —
+that's why Plan ref is its own column.
+
+Summarize the build order, the first slice, and any open coverage gaps. Note
+the handoffs: first-slice screens → **ui-design**; first-slice contracts/data →
+**detailed-design**. Offer next steps: scaffold the walking skeleton, or run
+detailed design on the first slice.
 
 ## Output format
 
