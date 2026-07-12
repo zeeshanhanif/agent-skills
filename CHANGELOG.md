@@ -7,6 +7,27 @@ This project does not yet publish tagged releases, so entries are grouped by dat
 
 ## [Unreleased]
 
+### Changed
+- **README** and **CLAUDE.md** updated for the six-skill pipeline (linear
+  requirements-to-skeleton pass plus the per-feature construction loop),
+  `detailed-design` as the first loop skill, and extended RTM Design-ref
+  write-back.
+
+## [2026-07-12]
+
+### Added
+- **`detailed-design`** skill — the first **per-feature loop skill**, run once
+  for each vertical slice as it reaches the front of the plan. Reads the plan,
+  SRS, use cases, architecture, and the **live codebase** (mandatory), then
+  produces per-feature `technical-design.md` (API contracts, schema migrations,
+  component design, acceptance criteria) and `tasks.md` under
+  `docs/features/FEAT-NNN-<slug>/`. Designs the *how* with the *what* fixed by
+  FR/UC IDs; escalates new entities to an architecture amendment; appends
+  Design ref to the RTM. Hands contracts to ui-design and tasks to
+  implementation.
+
+## [2026-07-11]
+
 ### Added
 - **`project-scaffolding`** skill — the first skill whose output is a running
   system, not a document. Reads the architecture and implementation plan (plus
@@ -21,10 +42,6 @@ This project does not yet publish tagged releases, so entries are grouped by dat
   (requirements → architecture → ux-foundations → planning → scaffolding),
   the RTM multi-writer contract, implementation-planning's full-pipeline
   consumption, stable SCR IDs, and project-scaffolding.
-
-## [2026-07-11]
-
-### Changed
 - **`implementation-planning`** now consumes the **full pipeline** — SRS, use
   cases, architecture, and ux-foundations (each degrading independently):
   - Every slice traces **FR IDs** implemented, **UC IDs** realized, and **SCR
