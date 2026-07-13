@@ -86,8 +86,14 @@ didn't say. Keep it short; infer and offer defaults.
 
 Read `references/slicing-guide.md`. Break the system into **epics** (aligned to
 the architecture's building blocks / bounded contexts) and **features** (thin
-vertical slices within each epic). For every feature, record its traced
-touchpoints:
+vertical slices within each epic; "feature" and "slice" are synonyms in this
+pipeline). **Mint a stable ID for every feature: `FEAT-NNN`**, sequential in
+definition order (not build order — build order can change; IDs never do).
+Same immutability rules as FR/SCR IDs: never renumbered or recycled;
+amendments take the next free number; removed features are tombstoned, not
+deleted. The epic association lives in the table, not the ID — features may
+migrate between epics without renumbering. For every feature, record its
+traced touchpoints:
 - **FRs implemented** (by ID, e.g., FR-AUTH-001..003)
 - **UCs realized** (by ID, e.g., UC-004)
 - **Screens touched** (by SCR ID and surface, e.g., SCR-WEB-004, SCR-ADM-002)
@@ -155,8 +161,10 @@ Read `references/document-template.md` and write the plan to
 `docs/implementation-plan.md`.
 
 **RTM write-back** (if `docs/rtm.md` exists; skip silently otherwise): fill the
-**Plan ref** column for every requirement a slice implements or the foundations
-absorb — the slice name (e.g., `Slice: Sign-in`) or `Foundations`. **Append
+**Plan ref** column for every requirement a feature implements or the
+foundations absorb — the **feature ID** (e.g., `FEAT-012`) or `Foundations`.
+The FEAT ID is the stable join key downstream skills use to reference this
+feature, and the key it shares with the RTM. **Append
 into cells, never overwrite**, and touch only Plan ref: rows and requirement
 columns belong to requirements-engineering, Design ref to
 architecture/detailed-design, Test ref to testing. Scheduling is not design —

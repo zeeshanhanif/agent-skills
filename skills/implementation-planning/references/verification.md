@@ -14,6 +14,9 @@ shipped.
 - Every FR, UC, and SCR ID cited anywhere in the plan **exists in its source
   document**. Grep the plan's IDs; diff against the IDs defined in srs.md,
   use-cases.md, and ux-foundations.md. No dangling references, no invented IDs.
+- **FEAT IDs are sound**: every feature has exactly one `FEAT-NNN` ID; no
+  duplicates or gaps filled by reuse; the build sequence and dependency graph
+  reference features by ID; RTM Plan ref entries use the ID.
 - **No tombstoned item spawned work**: no slice traces to an FR or screen whose
   status is `Removed`/`Deprecated` in its source.
 - Citations respect source-gating: if a source document is absent, the plan
