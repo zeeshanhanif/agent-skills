@@ -12,9 +12,10 @@ agents that follow the open `SKILL.md` standard).
 | [`ux-foundations`](./skills/ux-foundations) | Reads your SRS + architecture, then acquires a visual direction (research, reference images, an existing design file, or a connected tool like Figma) and produces the UX foundations (personas, IA, navigation, flows, screen inventory per surface), an agent-ready `design.md`, and canonical `tokens.json` (W3C DTCG). |
 | [`implementation-planning`](./skills/implementation-planning) | Reads the full pipeline (SRS, use cases, architecture, UX-foundations) and produces a sequenced build plan — epics and vertical feature slices (each tracing its FR/UC/screen IDs), the walking skeleton, a dependency/risk-ordered sequence, a Must-requirement coverage check, and the first-slice spec. Stops at the plan; detailed design and code are downstream. |
 | [`project-scaffolding`](./skills/project-scaffolding) | Turns the design docs into a **running system**: runs each ecosystem's official generator, wires the walking skeleton end-to-end (UI shell with your tokens → API → domain → local DB), stands up CI/test/deploy config, and verifies by building and running it. Deploy-ready, not deployed. |
+| [`detailed-design`](./skills/detailed-design) | The first **per-feature** skill in the construction loop. For one vertical slice at a time, it reads the plan + requirements + **the live codebase** and produces the feature's technical design (API contracts, schema migrations, component design, acceptance criteria) and an ordered `tasks.md`. Hands contracts to UI design and tasks to implementation. |
 
-Run back-to-back, they form a greenfield requirements-to-running-skeleton pipeline:
-`requirements-engineering` → `software-architecture` → `ux-foundations` → `implementation-planning` → `project-scaffolding`.
+The first five run once, back-to-back, as a greenfield requirements-to-running-skeleton pipeline; `detailed-design` then runs **once per feature** in a construction loop:
+`requirements-engineering` → `software-architecture` → `ux-foundations` → `implementation-planning` → `project-scaffolding` → **`detailed-design` (per feature) → …**
 
 ## Install
 
@@ -415,6 +416,68 @@ skills/project-scaffolding/
     ├── scaffolding-guide.md        # official-generator discovery + repo structure
     ├── skeleton-guide.md           # wiring the skeleton + engineering foundations
     └── verification.md             # empirical checks: build it, run it, prove it
+```
+
+---
+
+## `detailed-design`
+
+The first **loop skill** — where the linear pipeline gives way to a per-feature
+construction loop. It runs **once for each vertical slice** as that slice reaches
+the front of the plan, turning the feature's planned intent into a buildable
+technical design (the backend/system half; UI design is the presentation half and
+consumes these contracts). Three principles govern it: **the *what* is fixed
+upstream** (the FR/UC IDs were set in requirements and scoped by the plan — this
+skill designs the *how*, never reinterprets requirements); **the live codebase is
+an input, not an obstacle** (feature N is designed months after feature 1, against
+code that has evolved past the skeleton — reality wins over the documents where
+they diverge); and **depth here, and only here** (full concrete detail for *this*
+feature, nothing for features that haven't reached the front — the pipeline's
+depth-on-demand promise, kept).
+
+**What you get** — per feature, written into `docs/features/FEAT-NNN-<slug>/`
+(keyed on the feature's stable ID from the plan):
+- **`technical-design.md`** — API contracts (endpoints, request/response shapes,
+  error codes), physical **schema migrations** (within the entities the
+  architecture already owns — a new entity escalates to an architecture amendment,
+  never invented locally), component-level design, and testable acceptance
+  criteria derived from the FR statements and UC flows.
+- **`tasks.md`** — an ordered, implementable task breakdown (schema → domain →
+  contract → wiring → tests green), each task pointing at the design sections and
+  acceptance criteria it serves — ready to hand to a fresh session or a loop agent.
+- Two write-backs: the feature's design ref appended to the **RTM** Design column
+  for every FR it implements, and any **architecture-amendment escalation** it had
+  to file.
+
+It picks the next feature automatically (plan build-order minus the feature folders
+already designed) — execution status lives in the artifacts, never edited back into
+the plan.
+
+> Install with `npx skills add ... --skill detailed-design`, or copy it in by hand
+> following [Manual install (Claude Code)](#install-claude-code) above (swap
+> `software-architecture` for `detailed-design`).
+
+### Use
+
+Run it per feature, after the repo is scaffolded — let Claude trigger it
+automatically:
+```text
+Design the next feature from the plan.
+```
+or name a specific one / invoke it directly:
+```text
+/detailed-design  →  design the sign-in feature (FEAT-004)
+```
+
+### What's inside
+
+```text
+skills/detailed-design/
+├── SKILL.md                        # 6-phase per-feature workflow + triggering
+└── references/
+    ├── design-guide.md             # contracts, schema, components, acceptance criteria
+    ├── tasks-guide.md              # decomposing the design into an ordered tasks.md
+    └── verification.md             # self-check: coverage, ID resolution, no code collisions
 ```
 
 ---
