@@ -38,9 +38,14 @@ document is absent):
 Near features are detailed; far ones are a title plus touchpoints. A table per
 epic works well:
 
-| Feature | FRs | UCs | Screens | Blocks/Endpoints | Data |
-| :------ | :-- | :-- | :------ | :--------------- | :--- |
-| Sign-in | FR-AUTH-002..004 | UC-002 | SCR-WEB-002 | API: /auth/login | User, Session |
+| ID | Feature | FRs | UCs | Screens | Blocks/Endpoints | Data |
+| :- | :------ | :-- | :-- | :------ | :--------------- | :--- |
+| FEAT-004 | Sign-in | FR-AUTH-002..004 | UC-002 | SCR-WEB-002 | API: /auth/login | User, Session |
+
+Feature IDs (`FEAT-NNN`) are minted here, sequential in definition order, and
+are immutable (never renumbered/recycled; removals tombstone). The build
+sequence, dependency graph, and RTM Plan ref reference features by this ID; it
+stays stable so downstream construction work can rely on it.
 
 ## 4. Build Sequence  *[essential]*
 The ordered slices, with the **dependency + risk** reasoning that sets the order.

@@ -13,7 +13,14 @@ design defined, not invented ones.
 - **Feature (vertical slice)** — a thin unit *within* an epic that delivers
   user-visible value by cutting through every layer it needs: a screen or flow
   step (from ux-foundations), the endpoint(s) behind it (from the architecture),
-  the domain logic, and the data. This is the unit you sequence and assign.
+  the domain logic, and the data. This is the unit you sequence and assign —
+  and the unit the construction loop iterates over. **Every feature gets a
+  stable `FEAT-NNN` ID** at definition time, sequential in definition order,
+  with the pipeline's immutability rules: never renumbered or recycled,
+  amendments take the next free number, removals tombstone. The ID — not the
+  name — is what the build sequence, the dependency graph, and the RTM's Plan
+  ref key on, and downstream construction skills rely on this ID being stable;
+  names can change, IDs can't.
 - A feature is too big if it can't be demonstrated in one go; split it. It's too
   small if it delivers nothing observable on its own; merge it.
 
