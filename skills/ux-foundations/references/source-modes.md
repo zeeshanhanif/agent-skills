@@ -14,7 +14,9 @@ how the direction is obtained. Two rules apply to **every** mode:
   before anything is codified.
 
 Record in design.md's **Provenance** section: which mode ran, from what source,
-and what couldn't be determined (feeds **Known Gaps**).
+and what couldn't be determined (feeds **Known Gaps**). In mode 4, also write
+the **structured `design_source` block** (tool + locator; see
+design-md-guide.md §9) so the source is machine-locatable, not prose-only.
 
 ---
 
