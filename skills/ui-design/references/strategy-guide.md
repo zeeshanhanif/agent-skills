@@ -14,15 +14,15 @@ covered, manifest entry written.
    grew. Re-design an existing entry only when the user says so or
    re-verification flagged it.
 2. **Source lookup.** Query connected design tools for the screen. **First
-   stop: the `design_source` block in design.md §9** (present when
-   ux-foundations built the system from a tool — mode 4): it names the tool
+   stop: `design_provenance.source` in design.md §9** (populated when
+   ux-foundations built the system from a tool): it names the tool
    and file/project where designs live, so look there before generic
    discovery. Then match by SCR-ID naming convention in the tool (recommend
    designers name frames with SCR IDs; record the mapping on first
    registration so later lookups are exact) or by prior partial
    registrations. Note the converse: modes 1–3 projects can still have
    screens in a tool (a designer started a file after ux-foundations), so
-   absence of `design_source` never skips this lookup when tools are
+   a null `design_provenance.source` never skips this lookup when tools are
    connected. Found → **Strategy A**.
 3. **Fallback per the routing policy.** Not found → the project's recorded
    policy: **Strategy C (code-native, the default)** or **Strategy B

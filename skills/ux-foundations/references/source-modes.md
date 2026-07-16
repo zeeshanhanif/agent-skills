@@ -13,10 +13,10 @@ how the direction is obtained. Two rules apply to **every** mode:
   ingestion has conflicts, research is a proposal. The user confirms or adjusts
   before anything is codified.
 
-Record in design.md's **Provenance** section: which mode ran, from what source,
-and what couldn't be determined (feeds **Known Gaps**). In mode 4, also write
-the **structured `design_source` block** (tool + locator; see
-design-md-guide.md §9) so the source is machine-locatable, not prose-only.
+Record in design.md's **Provenance** section: the prose story, plus the
+**structured `design_provenance` block — written in every mode** (mode and
+fidelity always; `source` populated only in tool mode; see design-md-guide.md
+§9) so the mode and source are machine-readable, never prose-only.
 
 ---
 

@@ -57,7 +57,7 @@ FR/UC/NFR IDs only from documents that exist; never fabricate).
 
 - **Design system** — `docs/design.md` + `docs/tokens.json` (from
   ux-foundations). The authority every screen conforms to. Also read
-  design.md's Provenance (which source mode built the system — drives the
+  design.md's structured `design_provenance` block (mode and fidelity drive the
   anchor recommendation) and ux-foundations.md's screen inventory (SCR IDs,
   purposes, states) and per-surface profiles.
 - **Feature context** (per-feature mode) — the feature's
@@ -171,11 +171,13 @@ alternate/exception flows have UI states), and the manifest entry written.
 
 ### Phase 4 — Write the feature document
 
+Read `references/document-templates.md` and follow its structures — the
+heading formats are load-bearing (manifest locators anchor on them).
 Per-feature mode: `ui-design.md` in the feature folder — per screen: the spec
 or source reference, composition (which design.md components), states,
 contract bindings, decisions, escalations. Anchor mode: `anchor-screens.md`
-plus the verdict that is anchor mode's whole point: **does the system
-compose?** — with any system amendments proposed. Keep prose here; the
+**opening with the verdict** that is anchor mode's whole point — **does the
+system compose?** — with any system amendments proposed. Keep prose here; the
 manifest stays the machine index.
 
 ### Phase 5 — Verify
@@ -188,8 +190,12 @@ failures; flag the unfixable.
 
 ### Phase 6 — Deliver
 
-Summarize per screen: strategy, source, states, escalations. Live-computed
-progress ("FEAT-004 screens designed — manifest now covers 9 of 27 inventory
+Summarize per screen: strategy, source, states, escalations. Anchor mode
+additionally states plainly: "anchor designs are registered in
+design-manifest.json; the design system itself is unchanged" — or, when
+escalations were filed, "amendments proposed toward ux-foundations: <list>" —
+so it's explicit that no ux-foundations document was written by this skill.
+Live-computed progress ("FEAT-004 screens designed — manifest now covers 9 of 27 inventory
 screens"; computed, never stored). Handoff: implementation consumes
 tasks.md + the manifest (+ ui-design.md for the specs); code-native screens
 are realized during feature implementation, optionally with a screenshot
