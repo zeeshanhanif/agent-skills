@@ -109,6 +109,19 @@ button-primary"), and the one-line layout recipe.
   fidelity (tool-pulled values are exact; image extraction is approximate;
   research is designed-from-requirements). Record any SRS-driven adjustments
   ("ingested palette's CTA failed AA; darkened from #F0B84D to #E8A020").
+- **Design source (structured, when a design tool was the source — mode 4):**
+  a fenced, machine-parseable block recording where the designs live, so
+  downstream consumers can locate them without parsing prose:
+
+  ```json
+  { "design_source": { "tool": "figma",
+      "locator": "https://figma.com/file/<id>", "fetched": "2026-07-16" } }
+  ```
+
+  This records a fact about *this document's own source* — which designs the
+  system was pulled from — not any downstream convention. Omit entirely for
+  modes 1–3 (screens may still later exist in a tool; absence of this block
+  means only that the *system* wasn't tool-sourced).
 - **Known Gaps:** what the system doesn't yet define (states not extractable,
   breakpoints assumed, motion undefined) — honest, so a later session knows
   what's decided versus defaulted.

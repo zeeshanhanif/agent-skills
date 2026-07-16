@@ -93,9 +93,14 @@ Plus two write-backs:
 
 ### Phase 1 — Locate the feature and ingest
 
-Identify the feature: the user names it (by FEAT ID or name), or default to
+Identify the feature: the user names it (by FEAT ID or name — explicit naming
+is the only legitimate off-sequence path), or default to
 **the next undesigned feature — computed, not stored**: plan build-sequence
-order minus the `FEAT-*` folders already in `docs/features/`. Execution status
+order minus the `FEAT-*` folders already in `docs/features/`. Multiple
+candidates is not ambiguity — the sequence resolves it (earliest in build
+order wins); never present a menu. **Announce the resolution** ("FEAT-004 is
+next per the plan's build sequence") so the user can redirect before work
+starts. Execution status
 lives in the artifacts (a folder with a verified technical-design.md =
 designed; its tasks.md checkboxes = build progress) — the plan itself is never
 written with status; it stays the structural source owned by
