@@ -8,12 +8,57 @@ This project does not yet publish tagged releases, so entries are grouped by dat
 ## [Unreleased]
 
 ### Changed
+- **README** and **CLAUDE.md** updated for the seven-skill pipeline (linear
+  requirements-to-skeleton pass plus the two-skill per-feature construction
+  loop), **`ui-design`** as detailed-design's presentation sibling,
+  **`FEAT-NNN` IDs** as the construction-loop join key, and extended RTM
+  Design-ref write-back from both loop skills.
+
+## [2026-07-17]
+
+### Added
+- **`ui-design`** skill — the **presentation half** of the per-feature
+  construction loop, run sequentially after `detailed-design`. Three modes:
+  *anchor* (validate the design system composes after ux-foundations),
+  *per-feature* (design a slice's SCR screens against its
+  `technical-design.md` contracts), and *re-verification* (after a
+  `design.md` amendment). Resolves strategy **per screen** — register
+  existing tool designs (Figma, Claude Design, etc. via MCP), generate, or
+  code-native spec — and emits a uniform **`docs/design-manifest.json`**
+  (SCR-keyed, single-writer registry) plus `ui-design.md` or
+  `anchor-screens.md`. Screens conform to `design.md` + `tokens.json` or
+  escalate to a ux-foundations amendment; appends Design ref to the RTM.
+  Reference guides: `strategy-guide.md`, `design-tool-integrations.md`,
+  `manifest-guide.md`, `document-templates.md`, `verification.md`.
+- **`design_provenance` block** in `docs/design.md` — a structured JSON
+  object written in **every** ux-foundations source mode (`mode` and
+  `fidelity` always; `source` with tool + locator only in tool mode).
+  Drives ui-design's anchor recommendation gradient and tool-sourced screen
+  lookup (supersedes the earlier mode-4-only `design_source` block).
+
+### Changed
+- **`detailed-design`** resolves the next feature **deterministically** from
+  plan build order (first slice without a design folder — no menu); announces
+  the resolution so the user can redirect before work starts. Matches
+  ui-design's per-feature selection rule (first folder with
+  `technical-design.md` but no `ui-design.md`).
+
+## [2026-07-13]
+
+### Changed
+- **`implementation-planning`** mints a stable **`FEAT-NNN` ID** for every
+  feature slice (sequential in definition order, never renumbered/recycled,
+  tombstoned on removal — same discipline as FR/SCR IDs). RTM Plan-ref
+  write-back now keys on the FEAT ID; the ID is the join key for
+  detailed-design, ui-design, and the RTM.
+
+## [2026-07-12]
+
+### Changed
 - **README** and **CLAUDE.md** updated for the six-skill pipeline (linear
   requirements-to-skeleton pass plus the per-feature construction loop),
   `detailed-design` as the first loop skill, and extended RTM Design-ref
   write-back.
-
-## [2026-07-12]
 
 ### Added
 - **`detailed-design`** skill — the first **per-feature loop skill**, run once
