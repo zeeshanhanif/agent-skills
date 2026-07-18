@@ -46,6 +46,18 @@ Adapt the shape to the feature; the *rules* below are what's fixed.
 - **Every task has a "done when"** — checkable, not aspirational, usually
   pointing at tests or a demonstrable behavior. A task without a done-when is
   a wish.
+- **Write each done-when as the right kind for the task's nature** — the
+  classification is made here, at design time, so implementation executes it
+  rather than improvising per task. **Behavioral tasks** (logic, decisions,
+  transformations, contract semantics, validation) get test-artifact
+  done-whens: "unit tests for AC-1..3 pass", "contract tests pass for success
+  + designed errors" — runnable, rerunnable, tracing to criteria.
+  **Structural/realization tasks** (schema objects, wiring, realizing a
+  screen spec, config) get demonstration done-whens: "migration applies clean
+  up and down", "screen renders and conforms to its spec" — no ceremony test
+  asserting mere existence; the structure's behavior is covered by the logic
+  tasks that consume it. Verification is universal; test artifacts attach to
+  behavior.
 - **Every task points at its design section** and, where it delivers a
   requirement directly, its FR/UC ID. Traceability doesn't stop at the design
   document.
