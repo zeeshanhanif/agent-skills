@@ -83,6 +83,12 @@ The decisions that span the whole system. Cover the ones that matter here:
 - **Observability**: logging, metrics, tracing, alerting.
 - **Performance and scaling**: caching strategy, statelessness, how it scales
   under the load from the interview.
+- **Testing**: the strategy (pyramid shape, traced to the NFRs that justify
+  it), the **critical flows covered by E2E** (named, from the use cases —
+  cite UC IDs when use-cases.md exists), and the **chosen frameworks**: the
+  unit/integration runner per stack unit and the E2E framework, with the ADR
+  ref when the choice was a real fork. These are the frameworks downstream
+  realization installs — name them concretely.
 For a small system, a few sentences each. For a high-stakes system, a subsection
 each.
 

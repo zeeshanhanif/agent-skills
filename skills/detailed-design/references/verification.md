@@ -12,6 +12,10 @@ verification approach; the future pipeline-wide checker composes with this.)
 - Every UC flow the feature realizes (main + consequential alternates/exceptions)
   maps to contract behavior (§3) and acceptance criteria (§6).
 - Binding NFRs appear as concrete contract/design properties, cited by ID.
+- **E2E obligation honored**: if this feature's UCs intersect the
+  architecture's named critical flows, tasks.md contains the E2E-extension
+  task (flow-aware, before final verification); if the architecture is silent
+  on testing, the skip is legitimate.
 - Nothing in the design lacks a requirement or code-reality driver behind it
   (gold-plating check).
 
@@ -42,7 +46,7 @@ verification approach; the future pipeline-wide checker composes with this.)
 ## 5. Tasks soundness
 
 - Order respects dependencies (schema → domain → contract → wiring → UI
-  integration → verify); every task has a checkable done-when; every task
+  integration → E2E when owed → verify); every task has a checkable done-when; every task
   points at its design section; the final task is acceptance verification.
 - Executing tasks.md top-to-bottom would produce the design — no design
   element lacks a task, no task lacks a design basis.

@@ -1,7 +1,7 @@
 # Change Management (Amending a Finalized SRS)
 
 This protocol governs changes to requirements **after** the SRS is finalized. The
-hard problem is not editing text — it's keeping five interdependent files
+hard problem is not editing text — it's keeping three interdependent files
 consistent while preserving the IDs that every downstream skill (architecture,
 ux-foundations, implementation-planning) references. The whole protocol exists to
 make change **ID-stable and additive**, never a free rewrite.

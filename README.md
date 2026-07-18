@@ -12,10 +12,11 @@ agents that follow the open `SKILL.md` standard).
 | [`ux-foundations`](./skills/ux-foundations) | Reads your SRS + architecture, then acquires a visual direction (research, reference images, an existing design file, or a connected tool like Figma) and produces the UX foundations (personas, IA, navigation, flows, screen inventory per surface), an agent-ready `design.md`, and canonical `tokens.json` (W3C DTCG). |
 | [`implementation-planning`](./skills/implementation-planning) | Reads the full pipeline (SRS, use cases, architecture, UX-foundations) and produces a sequenced build plan — epics and vertical feature slices (each tracing its FR/UC/screen IDs), the walking skeleton, a dependency/risk-ordered sequence, a Must-requirement coverage check, and the first-slice spec. Stops at the plan; detailed design and code are downstream. |
 | [`project-scaffolding`](./skills/project-scaffolding) | Turns the design docs into a **running system**: runs each ecosystem's official generator, wires the walking skeleton end-to-end (UI shell with your tokens → API → domain → local DB), stands up CI/test/deploy config, and verifies by building and running it. Deploy-ready, not deployed. |
-| [`detailed-design`](./skills/detailed-design) | The first **per-feature** skill in the construction loop. For one vertical slice at a time, it reads the plan + requirements + **the live codebase** and produces the feature's technical design (API contracts, schema migrations, component design, acceptance criteria) and an ordered `tasks.md`. Hands contracts to UI design and tasks to implementation. |
+| [`detailed-design`](./skills/detailed-design) | A **per-feature** skill in the construction loop — the *system* half. For one vertical slice at a time, it reads the plan + requirements + **the live codebase** and produces the feature's technical design (API contracts, schema migrations, component design, acceptance criteria) and an ordered `tasks.md`. Hands contracts to UI design and tasks to implementation. |
+| [`ui-design`](./skills/ui-design) | The **presentation** half of each feature's low-level design, and detailed-design's loop sibling. Resolves a strategy **per screen** — pick up screens that already exist in a connected design tool (Figma, Claude Design, …) or fall back to code-native specs / generation — and emits one uniform, SCR-keyed `design-manifest.json` that downstream implementation reads regardless of tool. Screens conform to your design system or escalate — never fork it. |
 
-The first five run once, back-to-back, as a greenfield requirements-to-running-skeleton pipeline; `detailed-design` then runs **once per feature** in a construction loop:
-`requirements-engineering` → `software-architecture` → `ux-foundations` → `implementation-planning` → `project-scaffolding` → **`detailed-design` (per feature) → …**
+The first five run once, back-to-back, as a greenfield requirements-to-running-skeleton pipeline; `detailed-design` and `ui-design` then run **once per feature** in a construction loop:
+`requirements-engineering` → `software-architecture` → `ux-foundations` → `implementation-planning` → `project-scaffolding` → **`detailed-design` → `ui-design` (per feature) → …**
 
 ## Install
 
@@ -309,10 +310,11 @@ the easiest feature, then sequence the rest by dependency and risk).
 **What you get**
 - A brief priorities check for what isn't already in the documents (what "first"
   should optimize for, any deadline or MVP cut line, team capacity).
-- An **epic + feature breakdown** — thin vertical slices, each tracing the **FR
-  IDs** it implements, the **UC IDs** it realizes, and the **screen (SCR) IDs** it
-  touches, plus the building blocks/endpoints it needs. Tombstoned (removed)
-  requirements and screens are skipped.
+- An **epic + feature breakdown** — thin vertical slices, each with a stable
+  **`FEAT-NNN` ID** (the join key the construction-loop skills and the RTM
+  reference) and tracing the **FR IDs** it implements, the **UC IDs** it realizes,
+  and the **screen (SCR) IDs** it touches, plus the building blocks/endpoints it
+  needs. Tombstoned (removed) requirements and screens are skipped.
 - A **walking-skeleton** definition: the minimal end-to-end path that proves the
   system runs and deploys, with what's real vs. stubbed called out.
 - A **risk- and dependency-ordered sequence** with a Mermaid dependency graph,
@@ -478,6 +480,79 @@ skills/detailed-design/
     ├── design-guide.md             # contracts, schema, components, acceptance criteria
     ├── tasks-guide.md              # decomposing the design into an ordered tasks.md
     └── verification.md             # self-check: coverage, ID resolution, no code collisions
+```
+
+---
+
+## `ui-design`
+
+The **presentation half** of each feature's low-level design — `detailed-design`'s
+loop sibling, but sequential: in per-feature mode it consumes that feature's
+`technical-design.md`, because a screen displays what an endpoint returns. Its
+defining trait is that it's an **adapter**: how screens get designed varies wildly
+by project (an existing Figma file, a generation tool, straight to code), so it
+routes across strategies while emitting **one uniform contract** — the design
+manifest — that everything downstream reads, whatever produced each screen. All
+design-tool variance is absorbed here; no downstream skill ever learns what a Figma
+node is.
+
+Three principles govern it: **strategy is resolved per screen, not per project**
+(the manifest lookup by SCR ID is always the first move — register screens that
+already exist, fall back per policy for the rest); **screens conform to the design
+system or escalate — never fork it** (`design.md` + `tokens.json` are the
+authority; an off-system screen is corrected or the *system* is amended through
+ux-foundations); and **the manifest is the only registry** (no tool ever holds the
+complete picture — `docs/design-manifest.json` does, and this skill is its single
+writer).
+
+It runs in **three modes**:
+- **Anchor** — right after ux-foundations, design 2–3 key screens to validate the
+  design system *composes* before features build on it (recommended, not mandatory
+  — the strength of the recommendation follows how your `design.md` was sourced).
+- **Per-feature** — the construction loop: after `detailed-design`, design that
+  feature's screens against its contracts.
+- **Re-verification** — after a `design.md` amendment, re-check the screens the
+  change affects.
+
+**What you get**
+- **`docs/design-manifest.json`** — the global, SCR-keyed screen registry: per
+  screen, its strategy, source locator, states coverage, contract bindings,
+  conformance result, and status. The single source downstream implementation
+  reads — no matter which tool (if any) produced the screen.
+- **`docs/features/FEAT-NNN-<slug>/ui-design.md`** (per-feature) or
+  **`docs/anchor-screens.md`** (anchor mode, opening with the *does the system
+  compose?* verdict) — the human-readable screen specs and decisions.
+- An **RTM Design-ref append** for the FRs whose screens it designs, and any
+  **design-system amendment escalations** filed toward ux-foundations.
+
+> Install with `npx skills add ... --skill ui-design`, or copy it in by hand
+> following [Manual install (Claude Code)](#install-claude-code) above (swap
+> `software-architecture` for `ui-design`).
+
+### Use
+
+Either validate the system with anchor screens right after ux-foundations, or
+design a feature's screens in the loop — let Claude trigger it automatically:
+```text
+Design anchor screens to check the design system holds up.
+Design the next feature's screens.
+```
+or invoke it directly:
+```text
+/ui-design
+```
+
+### What's inside
+
+```text
+skills/ui-design/
+├── SKILL.md                        # 3-mode, per-screen-routing workflow + triggering
+└── references/
+    ├── strategy-guide.md           # per-screen strategy: register / generate / code-native
+    ├── design-tool-integrations.md # design tools as interchangeable capability-first engines
+    ├── manifest-guide.md           # the SCR-keyed design-manifest.json schema
+    ├── document-templates.md       # ui-design.md + anchor-screens.md (load-bearing headings)
+    └── verification.md             # self-check: entries, conformance, states, RTM append
 ```
 
 ---

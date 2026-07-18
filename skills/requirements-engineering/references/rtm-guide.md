@@ -55,7 +55,15 @@ writes only its own column(s), at the moment its artifact is finalized:
 - **Plan ref** — written by **implementation-planning**: the slice (and epic)
   that schedules each requirement (e.g., `Slice: Sign-in`). Scheduling is not
   design; that's why this is its own column.
-- **Test ref** — written by the future **testing** phase.
+- **Test ref** — written by the future **testing** phase. Entries may
+  accumulate when an FR spans features, each entry marked `(partial)` when
+  its report verified only part of the FR — markers are permanent
+  descriptions of that report's scope, never edited or upgraded. **Full
+  verification is computed, never stored**: an FR is fully verified when
+  every feature in its Plan ref has an accepted report in its Test ref; the
+  completing feature's own append is the transition, and non-emptiness of the
+  cell alone never means "verified." (Amendments that re-open an FR make it
+  partially-verified again by the same computation — no cell edits.)
 
 Write rules for every downstream writer: **append, never overwrite** another
 entry (comma/semicolon-append into the cell); write at delivery time of your

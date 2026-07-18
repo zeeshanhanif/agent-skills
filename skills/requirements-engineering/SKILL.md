@@ -215,4 +215,4 @@ It deliberately does **not**:
 - Every requirement has a unique, stable ID and is individually testable.
 - NFRs are measurable, never vague.
 - Work is checkpointed so a stop or network drop never loses captured areas.
-- The five outputs are internally consistent and cross-referenced via the RTM.
+- The three outputs are internally consistent and cross-referenced via the RTM.

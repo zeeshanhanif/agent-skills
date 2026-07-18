@@ -112,6 +112,19 @@ This is the trade-off to name out loud, because it's usually made by accident.
 - **Consistency strategy**: where you need transactions, where eventual
   consistency is fine, and how you reconcile (sagas, outbox pattern) when work
   spans boundaries.
+- **Testing strategy & frameworks**: decide, don't default. The **strategy** is
+  the pyramid shape traced to NFRs — many fast unit tests, a meaningful
+  integration/contract layer, and a *thin* E2E layer over the **named critical
+  flows** only (E2E is slow and costly to maintain; it earns its place only on
+  journeys catastrophic to break — name them here, from the use cases). A
+  high-availability or compliance NFR justifies heavier integration/E2E
+  investment; an internal tool justifies a thin strategy. The **frameworks**
+  are finalized here too, via Round 7's research-shortlist protocol: the
+  unit/integration runner per stack unit and the E2E framework, user-selected
+  from live-researched options (or the accepted ecosystem default). Write an
+  ADR when the choice was a genuine fork (contested options, org constraint
+  overridden, non-default pick); the E2E framework most often deserves one.
+  Downstream, scaffolding realizes exactly the frameworks named here.
 
 Each of these should appear in the "Cross-cutting Concepts" section of the
 document, with the level of rigor proportional to the system's stakes.

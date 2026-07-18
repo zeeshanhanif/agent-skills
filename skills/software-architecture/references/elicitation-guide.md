@@ -17,13 +17,14 @@ them from the SRS rather than asking. Each round below is tagged:
   has business/regulatory; ask team skills + lock-in tolerance); Round 5 (data:
   SRS has entities/volume; ask store-relevant access patterns).
 - **[elicit fresh]** — architecture decisions the SRS doesn't make. Round 7
-  (deployment/cloud) and technology-stack preferences. Read any *mandated* tech
+  (deployment/cloud), technology-stack preferences, and **testing frameworks**
+  (see Round 7's testing block). Read any *mandated* tech
   from SRS §2.5, but the stack is otherwise yours to decide.
 
 So with an SRS, the live interview is essentially: confirm the drivers, then ask
-about tech stack, lock-in tolerance, team skills, data access patterns, and
-deployment. **Without an SRS, run all rounds in full** — this is the standalone
-fallback.
+about tech stack, lock-in tolerance, team skills, data access patterns,
+deployment, and testing frameworks. **Without an SRS, run all rounds in full** —
+this is the standalone fallback.
 
 If `docs/use-cases.md` is also present, it's a secondary source: its
 exception/alternate flows often pre-answer Round 6's "what happens when a
@@ -159,6 +160,19 @@ hint in §2.4). Elicit this.
 - **Observability.** What do they need to see — logs, metrics, traces, alerting?
   Any existing tooling?
 - **Environments.** Just prod, or dev/staging/prod?
+- **Testing frameworks.** *(after the stack is settled — the options depend on
+  it)* Ask whether the user has framework preferences or org mandates for
+  **unit/integration testing** (per stack unit — the backend's runner and the
+  frontend's are separate choices) and for **end-to-end testing** (one
+  system-level choice). When they don't: **research the current options live
+  for the chosen backend and frontend stacks** — never recite remembered
+  defaults; framework landscapes shift — and present a short list per kind
+  (2–3 candidates, one-line trade-offs each), letting the user select or
+  accept the recommended ecosystem default in a word. The choices are
+  technology decisions like the database or cloud: user-decided,
+  research-backed, recorded (ADR when the choice was a genuine fork). The
+  E2E framework deserves the most care — it's cross-unit and the field has
+  real competing options.
 
 ---
 

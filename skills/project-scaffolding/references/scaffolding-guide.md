@@ -10,7 +10,10 @@ verification plus official generators supply the per-ecosystem specifics.
 From the architecture: each **container** in the container diagram becomes a
 deployable unit. For each, pull: language/framework (from the ADR that chose
 it — cite it), the store(s) it binds to, and the module boundaries inside it
-(the sub-domain seams the ADRs promised). From the plan: the walking-skeleton
+(the sub-domain seams the ADRs promised). From the architecture's
+cross-cutting **Testing** entry: the named unit/integration runner per unit
+and the E2E framework (with their ADR ref if any) — these are realized in
+Phase 6, never re-decided. From the plan: the walking-skeleton
 spec verbatim (what's real, what's stubbed, done-when) and the foundations
 checklist. From ux-foundations/design.md/tokens.json: which units are UI
 surfaces and therefore get the token wiring.
