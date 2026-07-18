@@ -7,12 +7,71 @@ This project does not yet publish tagged releases, so entries are grouped by dat
 
 ## [Unreleased]
 
+## [2026-07-19]
+
+### Added
+- **`feature-implementation`** skill — the **construction step** of the
+  per-feature loop, run after both design halves exist. **tasks.md is the
+  program; this skill is the interpreter:** executes tasks in order, one per
+  iteration, each done-when demonstrated (never asserted), one commit per
+  task, ending **developer-done**. Seven disciplines target agentic failure
+  modes: improvisation-is-escalation, disk-as-memory, anti-fake-green,
+  bounded fix-loops (default 3), scope discipline, convention conformance
+  (inherited test frameworks; tokens, never raw values), and git-as-checkpoint.
+  Writes no RTM column. Reference guides: `execution-guide.md`,
+  `failure-and-escalation.md`, `verification.md`.
+
 ### Changed
-- **README** and **CLAUDE.md** updated for the seven-skill pipeline (linear
-  requirements-to-skeleton pass plus the two-skill per-feature construction
-  loop), **`ui-design`** as detailed-design's presentation sibling,
-  **`FEAT-NNN` IDs** as the construction-loop join key, and extended RTM
-  Design-ref write-back from both loop skills.
+- **`detailed-design`** **`tasks.md` done-when classification** — behavioral
+  tasks (logic, contract semantics, validation) get test-artifact done-whens;
+  structural/realization tasks (schema, wiring, screen realization) get
+  demonstration done-whens — so `feature-implementation` executes verification
+  by kind instead of improvising per task.
+- **README** and **CLAUDE.md** updated for the **nine-skill pipeline** (linear
+  requirements-to-skeleton pass plus the four-skill per-feature construction
+  loop: `detailed-design` → `ui-design` → `feature-implementation` →
+  `acceptance-verification`), RTM Test-ref lifecycle, testing hand-offs, and
+  "When editing" guides for both new loop skills.
+
+## [2026-07-18]
+
+### Added
+- **`acceptance-verification`** skill — the **independent auditor** that
+  closes the per-feature loop after `feature-implementation` declares
+  *developer-done*. Re-derives the audit standard from authoritative documents
+  (never from checkboxes or claimed greens), audits and corrects weak tests
+  (the one artifact class it may change — never fixes production code),
+  re-runs all suites fresh, verifies FRs/NFRs directly, and delivers
+  **accepted / rework / design defect** verdicts in `acceptance-report.md`.
+  On acceptance, appends the RTM **Test ref** column, completing Plan ref →
+  Design ref → Test ref. Reference guides: `audit-guide.md`,
+  `verdict-and-report.md`.
+
+### Changed
+- **`software-architecture`** adds **testing strategy and framework decisions**
+  as a first-class cross-cutting concern: pyramid shape traced to NFRs, named
+  critical E2E flows (from use cases), and user-selected unit/integration
+  and E2E frameworks via live-researched shortlists in Round 7
+  (`decision-guide.md`, `elicitation-guide.md`, `document-template.md`).
+- **`project-scaffolding`** **realizes architecture-named test frameworks** —
+  installs the unit/integration runners and E2E framework the architecture
+  chose (execute, don't re-decide); stands up an E2E workspace with the
+  skeleton test as the suite seed (`scaffolding-guide.md`, `skeleton-guide.md`,
+  `verification.md`).
+- **`detailed-design`** adds **flow-aware E2E extension tasks** — when a
+  feature's UC IDs intersect architecture-named critical flows, `tasks.md`
+  includes an explicit E2E-extension task before final verification
+  (`tasks-guide.md`, `verification.md`).
+- **`requirements-engineering`** **RTM Test-ref contract** — `(partial)`
+  markers are permanent scope descriptions; **full verification is computed**
+  from Plan ref ∩ Test ref intersection, never stored in the cell
+  (`rtm-guide.md`).
+- **`requirements-engineering`** fixes stale **"five outputs"** and **Phase 8**
+  references left over from Word-generation removal (three markdown
+  deliverables; finalization at Phase 7).
+- **README** and **CLAUDE.md** updated for the **seven-skill pipeline**
+  (`ui-design` as detailed-design's presentation sibling, `FEAT-NNN` join
+  key, extended RTM Design-ref write-back).
 
 ## [2026-07-17]
 
