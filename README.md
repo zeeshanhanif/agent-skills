@@ -12,11 +12,13 @@ agents that follow the open `SKILL.md` standard).
 | [`ux-foundations`](./skills/ux-foundations) | Reads your SRS + architecture, then acquires a visual direction (research, reference images, an existing design file, or a connected tool like Figma) and produces the UX foundations (personas, IA, navigation, flows, screen inventory per surface), an agent-ready `design.md`, and canonical `tokens.json` (W3C DTCG). |
 | [`implementation-planning`](./skills/implementation-planning) | Reads the full pipeline (SRS, use cases, architecture, UX-foundations) and produces a sequenced build plan — epics and vertical feature slices (each tracing its FR/UC/screen IDs), the walking skeleton, a dependency/risk-ordered sequence, a Must-requirement coverage check, and the first-slice spec. Stops at the plan; detailed design and code are downstream. |
 | [`project-scaffolding`](./skills/project-scaffolding) | Turns the design docs into a **running system**: runs each ecosystem's official generator, wires the walking skeleton end-to-end (UI shell with your tokens → API → domain → local DB), stands up CI/test/deploy config, and verifies by building and running it. Deploy-ready, not deployed. |
-| [`detailed-design`](./skills/detailed-design) | A **per-feature** skill in the construction loop — the *system* half. For one vertical slice at a time, it reads the plan + requirements + **the live codebase** and produces the feature's technical design (API contracts, schema migrations, component design, acceptance criteria) and an ordered `tasks.md`. Hands contracts to UI design and tasks to implementation. |
+| [`detailed-design`](./skills/detailed-design) | A **per-feature** skill in the construction loop — the *system* half. For one vertical slice at a time, it reads the plan + requirements + **the live codebase** and produces the feature's technical design (API contracts, schema migrations, component design, acceptance criteria) and an ordered `tasks.md`. Hands contracts to UI design and tasks to feature-implementation. |
 | [`ui-design`](./skills/ui-design) | The **presentation** half of each feature's low-level design, and detailed-design's loop sibling. Resolves a strategy **per screen** — pick up screens that already exist in a connected design tool (Figma, Claude Design, …) or fall back to code-native specs / generation — and emits one uniform, SCR-keyed `design-manifest.json` that downstream implementation reads regardless of tool. Screens conform to your design system or escalate — never fork it. |
+| [`feature-implementation`](./skills/feature-implementation) | The **construction step** of the loop: executes a feature's `tasks.md` against its designs, autonomously — one task at a time in order, each done-when demonstrated by actually running it, one commit per task, tests never weakened or skipped to pass. Bounded fix attempts (default 3), honest WIP stops, escalation instead of quiet redesign. Ends **developer-done**; the independent audit is acceptance-verification's job. |
+| [`acceptance-verification`](./skills/acceptance-verification) | The **independent auditor** that closes the per-feature loop. After feature-implementation declares a feature developer-done, it re-derives the audit standard from the documents (never from checkboxes or claimed greens), audits and corrects weak tests, re-runs every suite fresh, verifies requirements directly, and delivers a verdict — **accepted / rework / design defect** — writing the feature's acceptance report and, on acceptance, the RTM's Test ref. Never fixes production code. |
 
-The first five run once, back-to-back, as a greenfield requirements-to-running-skeleton pipeline; `detailed-design` and `ui-design` then run **once per feature** in a construction loop:
-`requirements-engineering` → `software-architecture` → `ux-foundations` → `implementation-planning` → `project-scaffolding` → **`detailed-design` → `ui-design` (per feature) → …**
+The first five run once, back-to-back, as a greenfield requirements-to-running-skeleton pipeline; the last four then run **once per feature** in a construction loop, in this order:
+`requirements-engineering` → `software-architecture` → `ux-foundations` → `implementation-planning` → `project-scaffolding` → **`detailed-design` → `ui-design` → `feature-implementation` → `acceptance-verification` (per feature) → …**
 
 ## Install
 
@@ -445,8 +447,10 @@ depth-on-demand promise, kept).
   never invented locally), component-level design, and testable acceptance
   criteria derived from the FR statements and UC flows.
 - **`tasks.md`** — an ordered, implementable task breakdown (schema → domain →
-  contract → wiring → tests green), each task pointing at the design sections and
-  acceptance criteria it serves — ready to hand to a fresh session or a loop agent.
+  contract → wiring → an E2E-extension task when the feature touches an
+  architecture-named critical flow → tests green), each task pointing at the
+  design sections and acceptance criteria it serves — the program
+  `feature-implementation` executes, ready for a fresh session or a loop agent.
 - Two write-backs: the feature's design ref appended to the **RTM** Design column
   for every FR it implements, and any **architecture-amendment escalation** it had
   to file.
@@ -553,6 +557,146 @@ skills/ui-design/
     ├── manifest-guide.md           # the SCR-keyed design-manifest.json schema
     ├── document-templates.md       # ui-design.md + anchor-screens.md (load-bearing headings)
     └── verification.md             # self-check: entries, conformance, states, RTM append
+```
+
+---
+
+## `feature-implementation`
+
+The **construction step** of the per-feature loop — where documents become code.
+**`tasks.md` is the program; this skill is the interpreter.** After both design
+halves exist (`technical-design.md` from detailed-design, `ui-design.md` + the
+manifest from ui-design), it executes the feature's tasks autonomously, one at a
+time in order, against the live codebase — producing working, tested, committed
+code that replaces the skeleton's stubs and ends **developer-done**: every task
+checked, including the final verification task. The independent audit is
+downstream (`acceptance-verification`) — this skill never grades its own homework
+alone.
+
+Seven disciplines, each targeting a named failure mode of agentic implementation:
+- **The program is fixed; improvisation is escalation** — when reality beats the
+  design, small design-consistent fixes are recorded; anything that changes a
+  contract, schema, acceptance criterion, or screen spec escalates to the
+  design's amendment path. It implements the design; it never quietly redesigns.
+- **Fresh-context safety** — disk is the memory: the checkbox state is the exact
+  position, so any iteration can run in a brand-new session (or a loop agent).
+- **Done-when demonstrated, never asserted** — a box flips only after the task's
+  done-when actually ran and passed, plus the **anti-fake-green rule**: tests are
+  never weakened, skipped, deleted, or edited to pass.
+- **Bounded fix-loops** — at most 3 attempts per task (per-project override),
+  then an honest stop: unchecked box, failure note, explicit WIP commit a fresh
+  session can pick up cold.
+- **Scope discipline** — this feature only; no drive-by refactors; tech-debt
+  discoveries are recorded, never acted on.
+- **Convention conformance** — test frameworks inherited from the scaffolded
+  harness, UI built through the design system (tokens, never raw values), with a
+  bounded screenshot loop for code-native screens.
+- **Git as the checkpoint** — one commit per completed task
+  (`FEAT-004 T3: implement POST /auth/login contract`); the log reads as the
+  execution log of `tasks.md`.
+
+It picks the next feature deterministically (the first in the plan's build order
+whose `tasks.md` has unchecked tasks), refuses to start when the design documents
+are missing (the design pair runs first), and writes **no RTM column** — Design
+ref was written upstream; Test ref belongs to acceptance-verification.
+
+> Install with `npx skills add ... --skill feature-implementation`, or copy it in
+> by hand following [Manual install (Claude Code)](#install-claude-code) above
+> (swap `software-architecture` for `feature-implementation`).
+
+### Use
+
+Run it per feature, after detailed-design and ui-design — let Claude trigger it
+automatically:
+```text
+Implement the next feature from the plan.
+```
+or name one / invoke it directly:
+```text
+/feature-implementation  →  build FEAT-004
+```
+
+### What's inside
+
+```text
+skills/feature-implementation/
+├── SKILL.md                        # the 7 disciplines + 5-phase autonomous task loop
+└── references/
+    ├── execution-guide.md          # the per-task cycle: implement, verify, commit
+    ├── failure-and-escalation.md   # bounded fix-loops, anti-fake-green, divergence routing
+    └── verification.md             # the developer-done gate, demonstrated not asserted
+```
+
+---
+
+## `acceptance-verification`
+
+The **independent auditor** that closes the per-feature loop — it turns
+*developer-done* into **verified**. It runs after `feature-implementation`
+finishes a feature (every `tasks.md` box checked) and answers, without the
+implementer's investment: does this feature actually satisfy its requirements?
+Auditor and mechanic stay separate — findings **route** (back to
+feature-implementation as rework, or to the design's amendment path as defects)
+and the skill **never fixes production code**. The one artifact class it may correct is the *measurement*: weak tests
+that fail its audit.
+
+Its core discipline is the **fresh-eyes rule**: every check is re-derived from the
+authoritative documents — the technical design's acceptance criteria, the verbatim
+FR/UC statements, the design manifest — never from `tasks.md` checkboxes, delivery
+summaries, or any session's claims of green. Claims are exhibits; observations are
+evidence.
+
+**What you get**
+- A **criterion-by-criterion test audit**: does a test cover each criterion, does
+  it assert what the criterion actually says (weakened proxies rejected), is it
+  really exercised — plus an anti-fake-green review of the feature's test diff
+  (loosened assertions, new skips, mocked-away behavior). Rejected tests are
+  **corrected toward the criterion**, never toward the code, in separate commits.
+- **Independent execution** — every suite re-run fresh from the repo state with
+  the harness's own commands (feature, whole-repo, E2E, migrations); no reported
+  green is trusted, only observed green counts.
+- **Direct requirement verification** beyond the tests: side-effect FRs observed
+  (the audit log's entries inspected, not just a 200), binding NFRs measured where
+  cheaply measurable (environment-caveated; infrastructure-needing NFRs recorded
+  as *pending environment*, never silently skipped), and screens spot-checked
+  against the design manifest.
+- A **verdict** — **accepted** / **rework** / **design defect** — written to the
+  feature folder as `acceptance-report.md` with the full source → criterion →
+  test → observation chain; rework routes back to feature-implementation,
+  defects to the design's amendment path.
+- On acceptance, the **RTM Test-ref append** (with a permanent `(partial)` marker
+  when the feature implements an FR partially) — completing each requirement's
+  Plan ref → Design ref → Test ref lifecycle.
+
+It picks the next feature deterministically (the first in the plan's build order
+that is developer-done but has no accepted report), and re-verification after
+rework or an amendment is a normal run — the report gains a new dated verdict,
+prior verdicts preserved.
+
+> Install with `npx skills add ... --skill acceptance-verification`, or copy it in
+> by hand following [Manual install (Claude Code)](#install-claude-code) above
+> (swap `software-architecture` for `acceptance-verification`).
+
+### Use
+
+Run it per feature, once implementation says it's done — let Claude trigger it
+automatically:
+```text
+FEAT-004 is implemented — verify it's really done.
+```
+or invoke it directly:
+```text
+/acceptance-verification
+```
+
+### What's inside
+
+```text
+skills/acceptance-verification/
+├── SKILL.md                        # 6-phase audit workflow + triggering
+└── references/
+    ├── audit-guide.md              # standard re-derivation, test audit, anti-fake-green, execution
+    └── verdict-and-report.md       # three verdicts, acceptance-report.md, RTM Test ref rules
 ```
 
 ---
