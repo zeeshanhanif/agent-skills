@@ -25,7 +25,11 @@ top-to-bottom without re-deriving or reinterpreting anything.
       Done when: end-to-end path exercises the real implementation.
 - [ ] T5 — UI integration point: consume contract in SCR-… screens
       (screens themselves: ui-design's manifest — this task is the wiring only)
-- [ ] T6 — Verify: all acceptance criteria (design §6) demonstrably pass;
+- [ ] T6 — E2E: extend the suite for <flow> [UC-…] to cover the path this
+      feature completes (only when the feature touches an architecture-named
+      critical flow)
+      Done when: the flow's E2E spec passes against the local stack.
+- [ ] T7 — Verify: all acceptance criteria (design §6) demonstrably pass;
       boundary/lint rules green; feature test suite green in CI config.
 ```
 
@@ -34,7 +38,7 @@ Adapt the shape to the feature; the *rules* below are what's fixed.
 ## Rules
 
 - **Ordering is the build order**: schema → domain → contract → wiring →
-  UI-integration → verification. Each task assumes only its predecessors.
+  UI-integration → E2E (when owed) → verification. Each task assumes only its predecessors.
   Dependencies between tasks beyond simple order are stated explicitly.
 - **One session per task**: sized so a focused session completes and verifies
   it. Too big → split; trivially small → merge. (For loop-agent execution,
@@ -45,6 +49,18 @@ Adapt the shape to the feature; the *rules* below are what's fixed.
 - **Every task points at its design section** and, where it delivers a
   requirement directly, its FR/UC ID. Traceability doesn't stop at the design
   document.
+- **The E2E obligation is computed, flow-aware, per feature.** When composing
+  the list, intersect this feature's UC IDs with the **critical flows named in
+  the architecture's cross-cutting Testing entry** (skip gracefully when the
+  architecture is silent on testing). Non-empty → mint an explicit task before
+  the final verification task: *"extend the E2E suite for <flow> [UC-xxx] to
+  cover the path this feature completes"* — done when the E2E spec for that
+  path passes against the local stack. Flow-aware means: extend coverage to
+  what the flow can now demonstrably do end-to-end, not a full-flow test of a
+  flow that's one-third built (testing against stubs is churn without value);
+  the feature completing a flow's last segment carries the task that makes the
+  whole flow's E2E real. This is how the architecture's thin-E2E strategy
+  stays real instead of silently becoming no-E2E.
 - **The last task is always verification** — the acceptance criteria pass,
   demonstrated. A feature whose tasks are done but whose criteria weren't run is
   not done.
