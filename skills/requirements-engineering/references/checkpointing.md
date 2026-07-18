@@ -17,7 +17,7 @@ would be noise). Suggested format:
 # Requirements Progress
 
 > Session source of truth. Statuses: pending | in-progress | done
-> SRS status: in-progress | FINALIZED   (set to FINALIZED at Phase 8)
+> SRS status: in-progress | FINALIZED   (set to FINALIZED at Phase 7)
 > Last updated: <timestamp>
 
 ## Phase 1 — Frame & scope
@@ -89,6 +89,6 @@ This is instruction-driven incremental saving, not OS-level autosave. It persist
 at each completed boundary, so a crash *mid-area* loses only that in-progress
 area, not the ones already written. It depends on a persistent working directory
 (present in Claude Code and Cowork). The progress and draft files are working
-files; only the five finalized outputs are deliverables. If the user wants a
+files; only the three finalized outputs are deliverables. If the user wants a
 clean repo, `docs/.requirements-progress.md` can be deleted (or git-ignored)
 after delivery.
