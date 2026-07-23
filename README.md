@@ -16,9 +16,12 @@ agents that follow the open `SKILL.md` standard).
 | [`ui-design`](./skills/ui-design) | The **presentation** half of each feature's low-level design, and detailed-design's loop sibling. Resolves a strategy **per screen** — pick up screens that already exist in a connected design tool (Figma, Claude Design, …) or fall back to code-native specs / generation — and emits one uniform, SCR-keyed `design-manifest.json` that downstream implementation reads regardless of tool. Screens conform to your design system or escalate — never fork it. |
 | [`feature-implementation`](./skills/feature-implementation) | The **construction step** of the loop: executes a feature's `tasks.md` against its designs, autonomously — one task at a time in order, each done-when demonstrated by actually running it, one commit per task, tests never weakened or skipped to pass. Bounded fix attempts (default 3), honest WIP stops, escalation instead of quiet redesign. Ends **developer-done**; the independent audit is acceptance-verification's job. |
 | [`acceptance-verification`](./skills/acceptance-verification) | The **independent auditor** that closes the per-feature loop. After feature-implementation declares a feature developer-done, it re-derives the audit standard from the documents (never from checkboxes or claimed greens), audits and corrects weak tests, re-runs every suite fresh, verifies requirements directly, and delivers a verdict — **accepted / rework / design defect** — writing the feature's acceptance report and, on acceptance, the RTM's Test ref. Never fixes production code. |
+| [`sdlc-orchestrator`](./skills/sdlc-orchestrator) | The **thin loop driver and lifecycle router** over the four loop skills. Computes each feature's stage from its artifacts (never stores position), drives the per-feature cycle in plan order — one stage, one feature, or run-until-blocked — and routes outcomes: rework back to implementation, design defects and blocks surfaced to you. Also routes lifecycle events — a **change request** walks the amendment chain (requirements → architecture/UX impact → plan) before entering the loop; a **bug** becomes a `docs/defects.md` entry, a failing test, a scoped fix, and a re-verification. Does no stage's work; owns only the defect ledger. |
 
-The first five run once, back-to-back, as a greenfield requirements-to-running-skeleton pipeline; the last four then run **once per feature** in a construction loop, in this order:
+The first five run once, back-to-back, as a greenfield requirements-to-running-skeleton pipeline; the next four then run **once per feature** in a construction loop, in this order:
 `requirements-engineering` → `software-architecture` → `ux-foundations` → `implementation-planning` → `project-scaffolding` → **`detailed-design` → `ui-design` → `feature-implementation` → `acceptance-verification` (per feature) → …**
+
+The tenth, `sdlc-orchestrator`, sits **over** that loop: it drives the four loop skills in sequence, routes their outcomes, and handles post-v1 change requests and bug fixes — a thin conductor that does none of the stages' work itself.
 
 ## Install
 
@@ -702,6 +705,80 @@ skills/acceptance-verification/
 └── references/
     ├── audit-guide.md              # standard re-derivation, test audit, anti-fake-green, execution
     └── verdict-and-report.md       # three verdicts, acceptance-report.md, RTM Test ref rules
+```
+
+---
+
+## `sdlc-orchestrator`
+
+The **loop driver and lifecycle router** — deliberately thin. Every loop skill
+already resolves its own position, keeps its state on disk, and announces rather
+than asks; this skill adds only what no single stage owns: the *global* position,
+the invocation of the right next stage, and the routing of outcomes between them.
+If logic here starts to look like design or build logic, it belongs in a stage
+skill instead.
+
+Three principles govern it: **compute, never store** (the global position is
+derived fresh every time from the plan's sequence joined to each feature's folder
+state — no orchestrator state file); **skills stay sovereign** (it invokes stages
+and reads outcomes, but never edits `tasks.md`, writes an RTM column, or resolves
+an escalation — the decisions the pipeline reserved for people pause the loop and
+surface); and **every stop is a resumable state** (a brand-new session recomputes
+the same spot).
+
+**What it does**
+- **Drives the per-feature loop** — `detailed-design` → `ui-design` →
+  `feature-implementation` → `acceptance-verification` → next feature — at the
+  scope you ask for: one stage, one feature cycle (the default), or
+  run-until-blocked. It announces the computed position before each invocation
+  ("FEAT-006 is at ui-designed; invoking feature-implementation").
+- **Routes outcomes**: rework verdicts loop back through implementation and
+  re-verification (bounded — repeated rework on one feature is surfaced as a
+  design-quality signal, not ground through); design defects, filed escalations,
+  and blocked tasks pause and surface toward the owning skill or you; plan
+  completion closes the loop.
+- **Feature-cycle routing** — a change request on an existing system ("add X")
+  walks the amendment chain in order (requirements-engineering → architecture/UX
+  impact → implementation-planning) so the new `FEAT` is minted with its FR/UC/SCR
+  IDs before the loop picks it up. No FEAT without its FRs.
+- **Maintenance routing** — a bug (verified behavior now broken) becomes a
+  `docs/defects.md` ledger entry (`DEF-NNN`), a **failing test first**, a scoped
+  fix under feature-implementation's disciplines, and a re-verification. A bug
+  whose root cause is the *design* reroutes to the design-defect path.
+- **Status on request** — a computed view (stored nowhere) of each feature's
+  stage, the loop front, open blocks/escalations/defects, and verified count vs.
+  plan.
+
+It owns exactly one artifact — the defect ledger `docs/defects.md` — and writes no
+pipeline document or RTM column. Deployment is out of scope; it points there when
+the plan completes undeployed.
+
+> Install with `npx skills add ... --skill sdlc-orchestrator`, or copy it in
+> by hand following [Manual install (Claude Code)](#install-claude-code) above
+> (swap `software-architecture` for `sdlc-orchestrator`).
+
+### Use
+
+Once the plan and first designs exist, let Claude trigger it automatically:
+```text
+Run the loop until it hits something that needs me.
+```
+or invoke it directly:
+```text
+/sdlc-orchestrator
+```
+It also handles post-v1 lifecycle events — "add a CSV export feature to the
+system" walks the amendment chain, "orders double-charge on retry — fix it" runs
+the maintenance route, and "project status" renders the computed view.
+
+### What's inside
+
+```text
+skills/sdlc-orchestrator/
+├── SKILL.md                        # loop driving + lifecycle routing, deliberately thin
+└── references/
+    ├── routing-guide.md            # stage detection, run scopes, outcome routing, pause discipline
+    └── lifecycle-routes.md         # the change-request amendment chain + the bug-fix maintenance route
 ```
 
 ---
