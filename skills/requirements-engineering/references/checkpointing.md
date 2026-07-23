@@ -18,6 +18,7 @@ would be noise). Suggested format:
 
 > Session source of truth. Statuses: pending | in-progress | done
 > SRS status: in-progress | FINALIZED   (set to FINALIZED at Phase 7)
+> Requirement syntax: EARS | shall   (chosen at end of Phase 1; SRS header is authoritative)
 > Last updated: <timestamp>
 
 ## Phase 1 — Frame & scope

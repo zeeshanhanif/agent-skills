@@ -7,7 +7,7 @@ agents that follow the open `SKILL.md` standard).
 
 | Skill | What it does |
 | :---- | :----------- |
-| [`requirements-engineering`](./skills/requirements-engineering) | The first SDLC step. Through an exhaustive, area-by-area interview it specifies the complete requirements, then produces a structured SRS (IEEE 29148 lineage), a use-case document, and a traceability matrix (markdown). Checkpoints so long sessions can resume, and later amends a finalized SRS with stable, never-recycled IDs. |
+| [`requirements-engineering`](./skills/requirements-engineering) | The first SDLC step. Through an exhaustive, area-by-area interview it specifies the complete requirements, then produces a structured SRS (IEEE 29148 lineage, functional requirements in EARS syntax or classic "shall" statements — your choice), a use-case document, and a traceability matrix (markdown). Checkpoints so long sessions can resume, and later amends a finalized SRS with stable, never-recycled IDs. |
 | [`software-architecture`](./skills/software-architecture) | Interviews you about a new application, then produces a right-sized architecture document with C4 diagrams (Mermaid) and Architecture Decision Records. |
 | [`ux-foundations`](./skills/ux-foundations) | Reads your SRS + architecture, then acquires a visual direction (research, reference images, an existing design file, or a connected tool like Figma) and produces the UX foundations (personas, IA, navigation, flows, screen inventory per surface), an agent-ready `design.md`, and canonical `tokens.json` (W3C DTCG). |
 | [`implementation-planning`](./skills/implementation-planning) | Reads the full pipeline (SRS, use cases, architecture, UX-foundations) and produces a sequenced build plan — epics and vertical feature slices (each tracing its FR/UC/screen IDs), the walking skeleton, a dependency/risk-ordered sequence, a Must-requirement coverage check, and the first-slice spec. Stops at the plan; detailed design and code are downstream. |
@@ -59,7 +59,11 @@ not an agile backlog.
   limiting, admin/back-office) and walks the ISO 25010 quality model for
   **measurable** non-functional requirements.
 - A structured **SRS** (ISO/IEC/IEEE 29148 / IEEE 830 lineage) as `docs/srs.md` —
-  the single source of truth the downstream skills read.
+  the single source of truth the downstream skills read. Functional requirements
+  are written in **EARS** (five constrained sentence patterns — event-driven,
+  state-driven, optional-feature, unwanted-behavior, ubiquitous) or classic
+  free-form "shall" statements; you pick once and it holds across the spec and
+  every amendment.
 - A separate **use-case document** (detailed textual specs + a Mermaid use-case
   diagram) as `docs/use-cases.md`.
 - A **requirements traceability matrix** (`docs/rtm.md`) linking every requirement
@@ -113,6 +117,7 @@ skills/requirements-engineering/
 └── references/
     ├── elicitation-guide.md        # the area-by-area interview
     ├── requirement-catalog.md      # the enumeration engine (FR areas + ISO 25010 NFRs)
+    ├── ears-guide.md               # EARS syntax — the five FR sentence patterns
     ├── use-case-guide.md           # deriving + specifying use cases
     ├── rtm-guide.md                # building the traceability matrix
     ├── srs-template.md             # IEEE 29148-lineage SRS structure

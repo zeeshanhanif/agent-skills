@@ -26,7 +26,8 @@ built on it. Concretely:
 1. Identify the area; find the highest existing ID in that area (the progress
    tracker records ID ranges) and assign the next number. Never fill a gap left
    by a removed requirement.
-2. Specify it with the full enumeration discipline (testable "shall" statement,
+2. Specify it with the full enumeration discipline (testable statement in the
+   syntax the SRS header records — EARS per `ears-guide.md`, or "shall" —
    priority, rules) — an addition gets the same rigor as original elicitation,
    including proposing related sub-requirements it implies.
 3. Append to the SRS, add any use case(s) it needs, add RTM row(s).
