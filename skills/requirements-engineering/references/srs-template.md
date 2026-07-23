@@ -17,6 +17,7 @@ Use this structure:
 # Software Requirements Specification: <System Name>
 
 > Version: <n> · Status: Draft | Reviewed | Approved | Finalized · Last updated: <date>
+> Requirement syntax: EARS | shall   *(chosen at end of Phase 1; governs §3.1 statements and all amendments)*
 
 ## Revision History
 *(One row per version. Seeded at finalization; appended on every amendment — see
@@ -59,13 +60,15 @@ What is assumed true, and external dependencies the project relies on.
 ## 3. Specific Requirements
 ### 3.1 Functional requirements
 Organized by capability area. Each area is a subsection; each requirement has a
-unique ID, a testable "shall" statement, a priority, and supporting rules. Use a
-table per area:
+unique ID, a testable statement in the **syntax recorded in the header** — EARS
+(see `ears-guide.md` for the five patterns) or free-form "shall" — a priority,
+and supporting rules. Example table (EARS mode):
 
 | ID | Requirement | Priority | Status | Notes / rules |
 | :-- | :---------- | :------- | :----- | :------------ |
 | FR-AUTH-001 | The system shall allow a visitor to register with email and password. | Must | Active | Email must be unique; password policy per NFR-SEC-003. |
-| FR-AUTH-002 | The system shall send a verification email on registration. | Must | Active | Link expires in 24h. |
+| FR-AUTH-002 | When a visitor completes registration, the system shall send a verification email to the submitted address. | Must | Active | Link expires in 24h. |
+| FR-AUTH-003 | If a sign-in attempt fails 5 times within 15 minutes, then the system shall lock the account for 30 minutes. | Must | Active | Lockout events are audit-logged per FR-AUDIT-002. |
 | … | … | … | … | … |
 
 Repeat a subsection (3.1.1, 3.1.2, …) per area: Authentication, Authorization,
@@ -103,6 +106,9 @@ assumed.
 
 - **One requirement per statement.** Split compound requirements so each has its
   own ID and is independently testable.
+- **One syntax throughout.** FR statements follow the syntax recorded in the
+  header — EARS patterns (`ears-guide.md`) or free-form "shall" — never a mix.
+  NFRs keep the metric/target/condition form in either mode.
 - **Stable IDs.** Once assigned, an ID never changes — the RTM and all downstream
   skills reference it.
 - **Testable language.** If you can't write an acceptance test for it, sharpen it.

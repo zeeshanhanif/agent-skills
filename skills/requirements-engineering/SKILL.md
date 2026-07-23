@@ -7,7 +7,9 @@ description: >-
   standard sub-requirements for each capability area (for authentication:
   sign-up, sign-in, verification, password reset, logout) plus all
   non-functional requirements. Produces a structured SRS (ISO/IEC/IEEE 29148
-  lineage) in markdown, a separate use-case document in markdown, and a
+  lineage) with functional requirements in EARS syntax or classic "shall"
+  statements (user's choice), in markdown, a separate
+  use-case document in markdown, and a
   requirements traceability matrix. Also amends a finalized SRS —
   adding, updating, or removing requirements with stable IDs. Use at the start
   of a project before architecture and UX, or when changing existing
@@ -114,15 +116,29 @@ introduction and overall-description sections immediately, and mark the area don
 in the tracker. This section also seeds the user-characteristics content that
 ux-foundations will later consume.
 
+**Close Phase 1 with the requirement-syntax decision.** Ask the user whether
+functional requirements should be written in **EARS** (five constrained
+patterns — see `references/ears-guide.md`) or as **free-form "shall"
+statements**, and recommend based on what Phase 1 revealed: EARS when the SRS
+feeds automated/agent pipelines or a regulated domain, or when error-handling
+completeness matters (usually the right call); free-form when the team must
+author amendments by hand and won't learn the patterns. Default to EARS if the
+user has no preference. Record the choice in the SRS header line (`Requirement
+syntax: EARS | shall`) and the tracker header. **Asked once, before the first
+FR is minted, never re-asked** — resume sessions read it from the tracker or
+SRS, and amendments follow whatever the SRS records.
+
 ### Phase 2 — Functional requirements, area by area (the detail loop)
 
-This is the core. Read `references/elicitation-guide.md` and
-`references/requirement-catalog.md`. Work through the application **one capability
-area at a time**. For each area:
+This is the core. Read `references/elicitation-guide.md`,
+`references/requirement-catalog.md`, and `references/ears-guide.md`. Work through
+the application **one capability area at a time**. For each area:
 - Propose the standard sub-requirements from the catalog as a checklist, in plain
   language, and ask the user to confirm / extend / remove.
 - Specify each confirmed requirement formally: a unique ID (e.g.,
-  `FR-AUTH-001`), a clear testable statement, priority, and any rules/validation.
+  `FR-AUTH-001`), a clear testable statement **in the recorded syntax** (EARS
+  per the ears-guide, or free-form "shall" if that was chosen in Phase 1),
+  priority, and any rules/validation.
 - Write the finalized area straight into `docs/srs.md`, then update the progress
   tracker before moving to the next area.
 
@@ -213,6 +229,8 @@ It deliberately does **not**:
 - Every capability area is enumerated to its standard sub-requirements, not just
   what the user first mentioned.
 - Every requirement has a unique, stable ID and is individually testable.
+- Statements follow the syntax recorded in the SRS header; in EARS mode,
+  trigger-less (ubiquitous) statements are the exception, not the default.
 - NFRs are measurable, never vague.
 - Work is checkpointed so a stop or network drop never loses captured areas.
 - The three outputs are internally consistent and cross-referenced via the RTM.

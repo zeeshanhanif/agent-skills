@@ -49,9 +49,20 @@ Each confirmed requirement gets:
 
 - **A unique, stable ID** — `FR-<AREA>-<NNN>` (e.g., `FR-AUTH-007`). IDs never
   change once assigned; they are what the RTM and downstream skills reference.
-- **A single, testable statement** — "The system shall …", one requirement per
-  statement (split compound requirements). If you can't write a test for it, it's
-  not specific enough.
+- **A single, testable statement in the recorded syntax** (SRS header;
+  chosen at end of Phase 1). In **EARS mode**, use one of the five patterns
+  (see `ears-guide.md`): ubiquitous, event-driven (`When…`), state-driven
+  (`While…`), optional-feature (`Where…`), or unwanted-behavior (`If… then…`)
+  — and if a statement has no trigger or state, challenge whether it's
+  genuinely ubiquitous. In **shall mode**, a free-form "The system shall …"
+  sentence. Either way: one requirement per statement (split compound
+  requirements), and if you can't write a test for it, it's not specific
+  enough.
+- **The unwanted-behavior pass** (both modes). After specifying an area's
+  happy-path requirements, ask what should happen when each one goes wrong
+  (invalid input, expiry, failure, abuse). These become their own requirements
+  with their own IDs — `If… then…` statements in EARS mode, "shall" statements
+  otherwise. This is the enumeration discipline applied to error handling.
 - **A priority** — e.g., Must / Should / Could (MoSCoW), or High/Med/Low.
 - **Supporting detail where it matters** — validation rules, business rules,
   data constraints, error conditions. (Detailed UI and API design is *not* here;
