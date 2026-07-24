@@ -7,6 +7,33 @@ This project does not yet publish tagged releases, so entries are grouped by dat
 
 ## [Unreleased]
 
+## [2026-07-23]
+
+### Added
+- **`sdlc-orchestrator`** skill — a **thin loop driver and lifecycle router**
+  over the four per-feature loop skills. Computes global position from
+  artifacts (never stores orchestrator state), invokes the next stage in plan
+  order, and routes outcomes (rework → implementation with a 2-cycle bound,
+  design-defect/escalation/blocked → pause and surface). Also owns two
+  lifecycle routes: **change requests** walk the amendment chain
+  (requirements → architecture/UX impact → plan) before the loop picks up
+  the new FEAT, and **bugs** become a `docs/defects.md` `DEF-NNN` entry,
+  a failing test first, a scoped fix, and re-verification. Owns only the
+  defect ledger; writes no pipeline document or RTM column. Reference guides:
+  `routing-guide.md`, `lifecycle-routes.md`.
+
+### Changed
+- **`requirements-engineering`** adds an **EARS syntax option** for functional
+  requirements — a once-per-SRS choice at end of Phase 1 (EARS five patterns
+  or free-form "shall"), recorded in the SRS header and progress tracker,
+  binding on all FR authoring and amendments. Includes unwanted-behavior pass
+  per capability area. New reference: `ears-guide.md`; updates to
+  `elicitation-guide.md`, `srs-template.md`, `checkpointing.md`,
+  `change-management.md`.
+- **README** and **CLAUDE.md** updated for the **ten-skill pipeline**
+  (`sdlc-orchestrator` over the four-skill loop), lifecycle routing, defect
+  ledger, and EARS in the requirements-engineering overview.
+
 ## [2026-07-19]
 
 ### Added
