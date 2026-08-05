@@ -34,7 +34,9 @@ Each attempt is a real attempt, not a flail:
 Tests are never weakened, skipped, deleted, or edited to make them pass. The
 forbidden moves, named: loosening an assertion, widening a tolerance,
 commenting out a case, marking skip/todo, deleting the test, mocking away the
-behavior under test, catching-and-ignoring the failure. A red test has
+behavior under test, catching-and-ignoring the failure — and, where the
+project enforces coverage, lowering the threshold, narrowing its scope, or
+adding exclusion/ignore patterns to pass the gate. A red test has
 exactly two legitimate resolutions: **the code is wrong → fix the code**, or
 **the design (and thus the test derived from it) is wrong → that's a
 divergence, escalate it**. There is no third path. If a test itself has a

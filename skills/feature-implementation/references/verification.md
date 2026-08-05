@@ -32,6 +32,8 @@ green here fails louder there.
   feature broke nothing (a red elsewhere is this feature's problem until
   proven otherwise).
 - **Boundary/lint rules** pass repo-wide.
+- **The coverage gate** green where the project enforces one (report-only
+  stances generate their report; none means none — nothing to check).
 - The **E2E suite** green, including the flow path this feature extended
   (when owed).
 - Migrations: the feature's migrations apply cleanly to a fresh local store
@@ -55,6 +57,10 @@ green here fails louder there.
   test files for loosened assertions, new skips, removed cases, or
   mocked-away behavior under test. Any legitimate test fix moved *toward the
   design* and says so in its commit message.
+- **Coverage configuration untouched**: the diff shows no lowered threshold,
+  narrowed scope, or added exclusion/ignore patterns in the coverage config —
+  the same forbidden-move status as a weakened assertion. A genuinely needed
+  config change went through the escalation path and says so.
 
 ## Reporting
 
