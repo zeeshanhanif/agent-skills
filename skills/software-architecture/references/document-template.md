@@ -85,10 +85,13 @@ The decisions that span the whole system. Cover the ones that matter here:
   under the load from the interview.
 - **Testing**: the strategy (pyramid shape, traced to the NFRs that justify
   it), the **critical flows covered by E2E** (named, from the use cases —
-  cite UC IDs when use-cases.md exists), and the **chosen frameworks**: the
+  cite UC IDs when use-cases.md exists), the **chosen frameworks**: the
   unit/integration runner per stack unit and the E2E framework, with the ADR
-  ref when the choice was a real fork. These are the frameworks downstream
-  realization installs — name them concretely.
+  ref when the choice was a real fork — and the **coverage stance**: none /
+  report-only / enforced threshold N% with its scope (changed-code vs
+  whole-repo), the tool per unit, and the driver (NFR ID, mandate, or
+  choice). These are what downstream realization installs — name them
+  concretely.
 For a small system, a few sentences each. For a high-stakes system, a subsection
 each.
 

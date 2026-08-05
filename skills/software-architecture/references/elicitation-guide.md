@@ -173,6 +173,14 @@ hint in §2.4). Elicit this.
   research-backed, recorded (ADR when the choice was a genuine fork). The
   E2E framework deserves the most care — it's cross-unit and the field has
   real competing options.
+- **Code coverage stance.** *(with the framework question)* Does the project
+  need **measured code coverage**: an enforced CI threshold, report-only, or
+  none (criterion coverage only)? Read the SRS first — a compliance NFR or
+  client constraint may already mandate it (cite the ID); otherwise ask.
+  When wanted but no number is given, recommend honestly: a *modest,
+  enforced* threshold on changed code beats a high vanity number on the
+  whole repo. The tool is normally the chosen runner's own coverage mode —
+  named per stack unit, live-verified like the runners themselves.
 
 ---
 

@@ -59,20 +59,29 @@ fails against the code, that's a rework finding, which is the system working.
 
 Diff the feature's test files across its commit range (`FEAT-NNN T1` … head):
 loosened assertions, widened tolerances, new skips/todos, deleted cases,
-behavior-under-test newly mocked. Implementation's own gate checked this;
-this review is the second pair of eyes on the one rule most worth
-double-checking. Any hit is examined against its commit message — a declared
-fix-toward-the-design with a sound rationale passes; anything else is a
-finding (severity by effect: a weakened acceptance assertion is rework-class
-at least).
+behavior-under-test newly mocked. **Diff the coverage configuration over the
+same range** where the project enforces coverage: a lowered threshold, a
+narrowed scope, or newly added exclusion/ignore patterns is examined exactly
+like a test edit — a declared change with a sound rationale (and an
+escalation toward the architecture's stance behind it) passes; downward drift
+that merely admitted this feature is a finding. Not this skill's job:
+re-measuring coverage independently — Phase 4's execution re-runs the gate
+itself, so the audit's value here is the config, not the number.
+Implementation's own gate checked all of this; this review is the second pair
+of eyes on the one rule most worth double-checking. Any hit is examined
+against its commit message — a declared fix-toward-the-design with a sound
+rationale passes; anything else is a finding (severity by effect: a weakened
+acceptance assertion is rework-class at least).
 
 ## Independent execution (Phase 4)
 
 - From the actual repo head, with the harness's own commands
   (scaffold-notes/agent-instructions — never improvised invocations).
 - The order that localizes failures: feature suite → whole-repo suite → E2E
-  (including this feature's owed path) → migrations up (and down where
-  supported) against a fresh local store.
+  (including this feature's owed path) → **the coverage gate where the
+  project enforces one** (run as CI runs it, at the configured threshold and
+  scope) → migrations up (and down where supported) against a fresh local
+  store.
 - Every run's observed result goes in the report — including flaky behavior
   (a test passing on retry is a finding of test quality, recorded, not
   laundered into green).

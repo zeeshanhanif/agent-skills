@@ -25,7 +25,11 @@ them.
 The end-to-end test (skeleton-guide) runs green locally, with the local data
 store up — **in the E2E workspace, using the architecture-named E2E
 framework** (and the unit harnesses match the architecture's named runners;
-any silent-architecture fallback is noted in scaffold-notes). This **is** the
+any silent-architecture fallback is noted in scaffold-notes). **The coverage
+configuration matches the architecture's stance**: enforced → the gate is
+present at the stated threshold and was seen executing in the skeleton's own
+CI-config run; report-only → the report generates; none → no coverage
+tooling exists. This **is** the
 plan's done-when condition, local half. State the result against the
 done-when's wording explicitly. The deployed half is
 **pending first deploy** — recorded as such in scaffold-notes and the delivery

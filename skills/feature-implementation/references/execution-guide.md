@@ -86,8 +86,16 @@ Author the acceptance-level tests here if the
 per-task tests don't already cover every criterion in technical-design §6 —
 each criterion demonstrably checked, cited by AC/FR ID. Then the full gate:
 feature suite green, whole-repo suite green (this feature broke nothing),
-boundaries clean, E2E (when owed) green, no WIP markers in tasks.md or code.
-Only then is the feature developer-done.
+boundaries clean, E2E (when owed) green, **the coverage gate green where the
+project enforces one**, no WIP markers in tasks.md or code. **The
+anti-fake-green rule extends to coverage**: the threshold, its scope, and
+its exclusion/ignore lists are configuration this skill never edits to get
+green. A red coverage gate has the same two honest paths as a red test:
+write the missing tests (the normal case — coverage red means behavior went
+unasserted), or, if the threshold itself is genuinely wrong for this
+codebase, that's a configuration divergence → escalate toward the
+architecture's coverage stance, never quietly lower the number. Only then is
+the feature developer-done.
 
 ## Session discipline
 

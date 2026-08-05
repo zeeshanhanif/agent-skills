@@ -53,9 +53,11 @@ From ux-foundations' outputs:
 The plan's engineering-foundations checklist made real — sized to the
 checklist, not beyond it:
 
-- **CI pipeline**: lint + test + build for every unit, on the target the plan
-  or user named. It must be written to pass — a red pipeline at delivery is a
-  verification failure, not a TODO.
+- **CI pipeline**: lint + test + build for every unit — plus the **coverage
+  step per the architecture's stance** (a gating threshold job when enforced,
+  report generation when report-only, nothing when none) — on the target the
+  plan or user named. It must be written to pass — a red pipeline at delivery
+  is a verification failure, not a TODO.
 - **Environments as config**: dev/staging/prod configuration files or
   parameterization per the architecture's deployment view — *written, not
   provisioned*. Secrets handled by the ecosystem's standard mechanism with
@@ -65,14 +67,19 @@ checklist, not beyond it:
   demanded them at skeleton stage.
 - **Test harness — realize the frameworks the architecture named.** The
   architecture's cross-cutting Testing entry names the unit/integration runner
-  per stack unit and the E2E framework (user-decided there; scaffolding
-  executes, it doesn't choose). Install and configure exactly those, wire them
-  into CI, keep whatever unit-test scaffolding the generators provided
-  (adapted to the named runner where they differ), and set the
-  placement/naming conventions with one example test per unit. **Fallback**:
-  only when the architecture is silent on testing (an older document, or the
-  entry was skipped) use the ecosystem-standard runner per unit — and note the
-  gap in scaffold-notes as a candidate architecture amendment.
+  per stack unit, the E2E framework, **and the coverage stance** (user-decided
+  there; scaffolding executes, it doesn't choose). Install and configure
+  exactly those, wire them into CI, keep whatever unit-test scaffolding the
+  generators provided (adapted to the named runner where they differ), and set
+  the placement/naming conventions with one example test per unit. **Coverage
+  per the stance**: **enforced** → the named tool configured with the stated
+  threshold and scope, wired as a CI gate that fails the pipeline;
+  **report-only** → coverage generated and surfaced in CI, no gate; **none**
+  → nothing installed, and nothing "helpfully" added. **Fallback**: only when
+  the architecture is silent on testing (an older document, or the entry was
+  skipped) use the ecosystem-standard runner per unit with **no coverage
+  tooling** — and note the gap in scaffold-notes as a candidate architecture
+  amendment. Record thresholds alongside versions in scaffold-notes.
 - **E2E workspace**: stood up as a system-level suite beside the units (e.g.,
   `e2e/` in the monorepo, or the workspace tool's convention) using the
   architecture-named E2E framework, configured to drive the frontend against

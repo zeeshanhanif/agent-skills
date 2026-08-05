@@ -121,10 +121,16 @@ This is the trade-off to name out loud, because it's usually made by accident.
   investment; an internal tool justifies a thin strategy. The **frameworks**
   are finalized here too, via Round 7's research-shortlist protocol: the
   unit/integration runner per stack unit and the E2E framework, user-selected
-  from live-researched options (or the accepted ecosystem default). Write an
-  ADR when the choice was a genuine fork (contested options, org constraint
-  overridden, non-default pick); the E2E framework most often deserves one.
-  Downstream, scaffolding realizes exactly the frameworks named here.
+  from live-researched options (or the accepted ecosystem default). The
+  **coverage stance** is the decision's third component: none / report-only /
+  enforced threshold (with its number and scope — changed-code vs whole-repo),
+  the driver stated (NFR ID, client mandate, or a deliberate team-discipline
+  choice) — with the honest caveat recorded: a percentage gate measures
+  execution, not assertion quality; it complements criterion coverage, never
+  substitutes for it. Write an ADR when a choice was a genuine fork
+  (contested options, org constraint overridden, non-default pick, mandated
+  coverage); the E2E framework most often deserves one. Downstream,
+  scaffolding realizes exactly the frameworks and coverage stance named here.
 
 Each of these should appear in the "Cross-cutting Concepts" section of the
 document, with the level of rigor proportional to the system's stakes.
