@@ -32,7 +32,7 @@ CI-config run; report-only → the report generates; none → no coverage
 tooling exists. This **is** the
 plan's done-when condition, local half. State the result against the
 done-when's wording explicitly. The deployed half is
-**pending first deploy** — recorded as such in scaffold-notes and the delivery
+**pending initial deployment** — recorded as such in scaffold-notes and the delivery
 summary, never claimed.
 
 ## 4. Boundaries are enforced, not decorative
@@ -53,7 +53,7 @@ resolve.
 
 The pipeline config parses/validates by the CI system's own checker where
 available locally; jobs reference commands that exist. (Actually running CI
-happens on first push — note it as pending alongside first deploy if the repo
+happens on first push — note it as pending alongside the initial deployment if the repo
 hasn't been pushed.)
 
 ## 7. Deployment config is coherent
@@ -73,5 +73,5 @@ their replacing slices.
 ## Reporting
 
 Close with one line in the delivery summary: "verification clean — skeleton
-green locally; first deploy and first CI run pending" or the flagged list with
+green locally; initial deployment and first CI run pending" or the flagged list with
 causes. The user should never discover a red skeleton the skill knew about.

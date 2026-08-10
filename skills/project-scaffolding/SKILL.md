@@ -163,7 +163,7 @@ unfixable in the delivery summary — never silently ship a broken skeleton.
 ### Phase 8 — Deliver
 
 Summarize: what exists, the exact commands to run it, what's stubbed, the
-pending-first-deploy note, and the handoff — the skeleton is ready for slice 1
+pending-initial-deployment note, and the handoff — the skeleton is ready for slice 1
 via **detailed-design** (contracts/data) and **ui-design** (screens by SCR ID).
 Finalize scaffold-notes and mark the tracker complete.
 

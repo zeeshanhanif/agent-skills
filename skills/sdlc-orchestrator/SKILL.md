@@ -118,8 +118,9 @@ it owns.
 
 Does **not**: perform any stage's work; resolve escalations or amendments
 (walks the user to the owning skill); override a stage's computed resolution;
-write any pipeline artifact except the defect ledger; deploy (first-deploy's
-job — but it will point there when the plan completes undeployed).
+write any pipeline artifact except the defect ledger; deploy
+(initial-deployment's job — but it will point there when the plan completes
+undeployed).
 
 ## What good looks like
 

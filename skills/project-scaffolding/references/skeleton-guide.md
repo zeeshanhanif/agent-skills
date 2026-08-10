@@ -90,7 +90,7 @@ checklist, not beyond it:
 - **Deployment config written**: for the architecture's stated target —
   Dockerfiles, service config, IaC skeleton as appropriate — syntactically
   valid, checked into the repo, **not executed**. The delivery summary states
-  plainly: first deploy is the user's step, and the done-when's deployed half
+  plainly: the initial deployment is the user's step, and the done-when's deployed half
   is pending until then.
 - **Cross-cutting FRs placed in foundations by the plan** (e.g., audit-logging
   groundwork) get their hooks here, with their FR IDs in a comment — the
