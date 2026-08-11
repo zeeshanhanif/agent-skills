@@ -7,6 +7,48 @@ This project does not yet publish tagged releases, so entries are grouped by dat
 
 ## [Unreleased]
 
+## [2026-08-11]
+
+### Changed
+- **`initial-deployment`** artifact vocabulary aligned to the skill name:
+  `docs/deploy-notes.md` → **`docs/deployment-notes.md`**,
+  `docs/.deploy-progress.md` → **`docs/.deployment-progress.md`**,
+  "deploy plan" → "deployment plan" for the money gate. Adds **Output 4** —
+  one narrow foreign write into `docs/scaffold-notes.md` to close the pending
+  initial-deployment marker in place (the only other skill's artifact touched).
+- **README** and **CLAUDE.md** updated for the renamed artifacts, checkpoint
+  file, scaffold-notes close, and foreign-write boundary.
+
+## [2026-08-10]
+
+### Added
+- **`initial-deployment`** skill — the **last mile from deploy-ready to
+  running in the cloud**. Provisions from repo deployment artifacts, wires
+  secrets and CD, deploys, verifies live, and folds in the day-1 operations
+  floor. Money and credentials gates; checkpointed progress; cloud-agnostic
+  process with live provider docs. Closes the walking skeleton done-when's
+  pending deployed half. Output: running system + deployment notes. Writes no
+  RTM column. Reference guides: `deployment-guide.md`, `operations-minimum.md`,
+  `verification.md`.
+
+### Changed
+- **`project-scaffolding`** and **`sdlc-orchestrator`** wired to
+  **`initial-deployment`**: deploy-ready boundary, "initial deployment"
+  terminology, orchestrator points at initial-deployment when undeployed.
+- **README** and **CLAUDE.md** updated for the **eleven-skill pipeline**
+  (initial-deployment as sixth one-pass skill), testing/coverage hand-off
+  chain, and "When editing initial-deployment" guide.
+
+## [2026-08-05]
+
+### Changed
+- **Code coverage stance** added across the testing pipeline — architecture
+  decides none / report-only / enforced threshold; scaffolding realizes it
+  in CI; feature-implementation treats the gate as developer-done with
+  anti-fake-green extended to coverage config; acceptance-verification audits
+  config diffs and re-runs the gate (`software-architecture`,
+  `project-scaffolding`, `feature-implementation`, `acceptance-verification`).
+
 ## [2026-07-23]
 
 ### Added

@@ -74,5 +74,5 @@ is scoped to a single named unit, announced, and confirmed.
 Checkpoint granularity is the natural boundary — a crash mid-generator loses
 that unit's partial output (which is why step 3 inspects before continuing).
 The tracker is a working file, not a deliverable; it can be git-ignored or
-deleted after delivery, though keeping it until first deploy is harmless and
+deleted after delivery, though keeping it until the initial deployment is harmless and
 useful.

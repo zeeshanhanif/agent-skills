@@ -12,6 +12,7 @@ agents that follow the open `SKILL.md` standard).
 | [`ux-foundations`](./skills/ux-foundations) | Reads your SRS + architecture, then acquires a visual direction (research, reference images, an existing design file, or a connected tool like Figma) and produces the UX foundations (personas, IA, navigation, flows, screen inventory per surface), an agent-ready `design.md`, and canonical `tokens.json` (W3C DTCG). |
 | [`implementation-planning`](./skills/implementation-planning) | Reads the full pipeline (SRS, use cases, architecture, UX-foundations) and produces a sequenced build plan — epics and vertical feature slices (each tracing its FR/UC/screen IDs), the walking skeleton, a dependency/risk-ordered sequence, a Must-requirement coverage check, and the first-slice spec. Stops at the plan; detailed design and code are downstream. |
 | [`project-scaffolding`](./skills/project-scaffolding) | Turns the design docs into a **running system**: runs each ecosystem's official generator, wires the walking skeleton end-to-end (UI shell with your tokens → API → domain → local DB), stands up CI/test/deploy config, and verifies by building and running it. Deploy-ready, not deployed. |
+| [`initial-deployment`](./skills/initial-deployment) | Takes the deploy-ready repo **live** — the last mile scaffolding stopped short of. Reads the target and topology from your architecture, then provisions the environments from the deployment configs already in the repo, stands up real secrets management, extends CI to CD, deploys, and verifies against the running system. Folds in the day-1 operations floor (uptime, alerting, backups with a *performed* restore). Cloud-agnostic; confirms the plan before creating anything billable and never handles a secret value. |
 | [`detailed-design`](./skills/detailed-design) | A **per-feature** skill in the construction loop — the *system* half. For one vertical slice at a time, it reads the plan + requirements + **the live codebase** and produces the feature's technical design (API contracts, schema migrations, component design, acceptance criteria) and an ordered `tasks.md`. Hands contracts to UI design and tasks to feature-implementation. |
 | [`ui-design`](./skills/ui-design) | The **presentation** half of each feature's low-level design, and detailed-design's loop sibling. Resolves a strategy **per screen** — pick up screens that already exist in a connected design tool (Figma, Claude Design, …) or fall back to code-native specs / generation — and emits one uniform, SCR-keyed `design-manifest.json` that downstream implementation reads regardless of tool. Screens conform to your design system or escalate — never fork it. |
 | [`feature-implementation`](./skills/feature-implementation) | The **construction step** of the loop: executes a feature's `tasks.md` against its designs, autonomously — one task at a time in order, each done-when demonstrated by actually running it, one commit per task, tests never weakened or skipped to pass. Bounded fix attempts (default 3), honest WIP stops, escalation instead of quiet redesign. Ends **developer-done**; the independent audit is acceptance-verification's job. |
@@ -19,9 +20,11 @@ agents that follow the open `SKILL.md` standard).
 | [`sdlc-orchestrator`](./skills/sdlc-orchestrator) | The **thin loop driver and lifecycle router** over the four loop skills. Computes each feature's stage from its artifacts (never stores position), drives the per-feature cycle in plan order — one stage, one feature, or run-until-blocked — and routes outcomes: rework back to implementation, design defects and blocks surfaced to you. Also routes lifecycle events — a **change request** walks the amendment chain (requirements → architecture/UX impact → plan) before entering the loop; a **bug** becomes a `docs/defects.md` entry, a failing test, a scoped fix, and a re-verification. Does no stage's work; owns only the defect ledger. |
 
 The first five run once, back-to-back, as a greenfield requirements-to-running-skeleton pipeline; the next four then run **once per feature** in a construction loop, in this order:
-`requirements-engineering` → `software-architecture` → `ux-foundations` → `implementation-planning` → `project-scaffolding` → **`detailed-design` → `ui-design` → `feature-implementation` → `acceptance-verification` (per feature) → …**
+`requirements-engineering` → `software-architecture` → `ux-foundations` → `implementation-planning` → `project-scaffolding` → *(`initial-deployment`)* → **`detailed-design` → `ui-design` → `feature-implementation` → `acceptance-verification` (per feature) → …**
 
-The tenth, `sdlc-orchestrator`, sits **over** that loop: it drives the four loop skills in sequence, routes their outcomes, and handles post-v1 change requests and bug fixes — a thin conductor that does none of the stages' work itself.
+`initial-deployment` also runs once. It's shown where it's *recommended* — right after scaffolding, so the walking skeleton itself goes live and every later feature is continuously deployable — but running it any time later works the same way; it deploys whatever the repo currently holds.
+
+The eleventh, `sdlc-orchestrator`, sits **over** that loop: it drives the four loop skills in sequence, routes their outcomes, and handles post-v1 change requests and bug fixes — a thin conductor that does none of the stages' work itself.
 
 ## Install
 
@@ -164,6 +167,12 @@ decides *how* (stack, stores, deployment).
   the requirements docs are present, each ADR cites the **SRS requirement IDs**
   (and any use-case IDs) it addresses so traceability runs both ways; when they're
   absent it names the driver in prose instead — it never invents an ID.
+- **The testing decisions, made once and made concrete** — the strategy, the critical
+  flows worth E2E coverage, the actual **frameworks** (unit/integration runner per
+  unit, E2E framework, picked from live-researched options), and your **code-coverage
+  stance**: none, report-only, or an enforced threshold with its scope. Everything
+  downstream realizes this entry rather than re-deciding it — scaffolding wires
+  exactly these into CI, implementation inherits them, and the auditor re-runs them.
 
 **Outputs** default to a single `docs/architecture.md`; it can also export a `.docx`
 for stakeholders, or split ADRs into a `docs/adr/` log on request.
@@ -378,7 +387,7 @@ The first skill whose output is a **running system, not a document**. It reads t
 architecture and the implementation plan and turns the walking skeleton into a real
 repo: generated structure, wired end-to-end, foundations in place, verified by
 execution. It ends where deployment begins — everything is deploy-*ready*; the
-first actual deploy is your step. Three principles govern it: **the stack is an
+first actual deploy is [`initial-deployment`](#initial-deployment)'s job. Three principles govern it: **the stack is an
 input, never a decision** (the architecture's ADRs already chose it — gaps go back
 as candidate amendments); **official generators first** (it discovers each
 ecosystem's current official initializer, verifies its flags against live docs, and
@@ -394,7 +403,9 @@ design system in the UI shell, and empirical verification).
   frontend, `design.md` referenced) → API → domain stub → local database → back,
   stubbed exactly where the plan said.
 - **Engineering foundations** stood up: CI (lint/test/build), environment configs,
-  observability hooks, a test harness with one end-to-end skeleton test, and
+  observability hooks, a test harness running **the frameworks your architecture
+  named** with one end-to-end skeleton test and coverage wired to its stance
+  (gating job, report-only, or nothing at all — never "helpfully" added), and
   deployment config *written but not executed*.
 - **Empirical verification** — a clean install builds, the skeleton test passes
   locally, boundary rules hold, and tokens actually render; anything unfixable is
@@ -428,6 +439,95 @@ skills/project-scaffolding/
     ├── scaffolding-guide.md        # official-generator discovery + repo structure
     ├── skeleton-guide.md           # wiring the skeleton + engineering foundations
     └── verification.md             # empirical checks: build it, run it, prove it
+```
+
+---
+
+## `initial-deployment`
+
+The last mile scaffolding stopped short of: **deploy-ready → running in the cloud.**
+Scaffolding wrote your deployment configs, environment parameterization, and CI and
+then stopped, by contract, at "the initial deployment is your step." This is that step —
+same character as scaffolding: real execution against live reality, empirical
+verification, honest notes, and checkpointed progress that never blindly
+re-provisions.
+
+Three principles govern it: **the target is an input, never a decision** (the
+architecture's ADRs and deployment view already chose the platform and topology —
+gaps go back as candidate amendments; the process is cloud-agnostic, and CLI
+specifics are verified against **live provider docs**, never recited from memory);
+**money and credentials get gates** (the deployment plan is played back for one explicit
+confirmation before anything billable is created, and the skill never asks for,
+stores, or writes a secret value — it blocks with instructions if your provider CLI
+isn't authenticated); and **deployed means demonstrated** (the skeleton exercised
+live, CD proven by a real pipeline run, the restore actually performed).
+
+**When to run it.** Recommended **early — right after scaffolding**, deploying the
+walking skeleton itself: that's the walking-skeleton philosophy (prove the system
+deploys before features pile on), and it makes every later feature continuously
+deployable. Running it later is fully supported — it deploys whatever the repo holds
+today, and the pending-environment NFRs it can finally measure make it *more*
+valuable then; the trade-off is that a first push shipping N features at once has
+many more candidate causes when something fails.
+
+**What you get**
+- **Provisioned environments** — created by executing the deployment artifacts
+  already in your repo (not hand-driven through a console), in dependency order,
+  checkpointed, with deviations from the deployment view recorded or escalated.
+- **Real secrets management** — scaffolding's placeholders replaced with the
+  provider's own secret mechanism, services wired to read it, wiring proven with a
+  non-secret canary, and the exact steps for *you* to enter each value out-of-band.
+- **CD, proven** — your green CI extended to actual delivery per the architecture's
+  cadence (deploy on merge, promotion to prod as specified), demonstrated by an
+  observed pipeline run.
+- **A live end-to-end exercise** — the skeleton's own test run against the deployed
+  environment, closing the plan's walking-skeleton done-when (scaffolding proved the
+  local half; this is the deployed half, and its *pending initial deployment* marker
+  in `scaffold-notes.md` is closed in place with the evidence), plus whatever feature
+  E2E paths the suite has grown.
+- **The day-1 operations floor**, folded in rather than deferred: uptime checks on
+  each public surface, error alerting to a channel you actually read, reachable
+  logs, TLS/domain, and backups **with a restore performed once** — a backup never
+  restored is a hope.
+- **Pending-environment NFRs measured** — the items acceptance reports had to defer
+  for want of a real environment, run now and recorded (formal verdicts stay
+  acceptance-verification's call; re-run it).
+- **`docs/deployment-notes.md`** — what was provisioned, environment URLs, the exact
+  deploy *and rollback* commands, secret store locations (never values), observed
+  costs, and every deviation with its reason, so a cold session or a teammate can
+  operate the deployment. (Progress is checkpointed in `docs/.deployment-progress.md`,
+  so an interrupted run resumes instead of re-provisioning.)
+
+It writes no RTM column — deployment realizes infrastructure, not requirements — and
+the only file it touches that another skill owns is that one pending marker in
+`scaffold-notes.md`. It also won't choose or change your platform or topology (that's
+the architecture's job), handle credential values, build features, or take on full
+day-2 operations.
+
+> Install with `npx skills add ... --skill initial-deployment`, or copy it in by
+> hand following [Manual install (Claude Code)](#install-claude-code) above (swap
+> `software-architecture` for `initial-deployment`).
+
+### Use
+
+Once the skeleton builds and runs locally — let Claude trigger it automatically:
+```text
+The skeleton's green locally. Let's deploy it and get the environments stood up.
+```
+or invoke it directly:
+```text
+/initial-deployment
+```
+
+### What's inside
+
+```text
+skills/initial-deployment/
+├── SKILL.md                        # 10-phase workflow (checkpointed) + triggering
+└── references/
+    ├── deployment-guide.md         # deploy contract, plan playback, provisioning, secrets, CD
+    ├── operations-minimum.md       # the day-1 floor: uptime, alerting, logs, backup + restore
+    └── verification.md             # demonstrated live: provisioning, pipeline, E2E, operations
 ```
 
 ---
@@ -590,7 +690,9 @@ Seven disciplines, each targeting a named failure mode of agentic implementation
   position, so any iteration can run in a brand-new session (or a loop agent).
 - **Done-when demonstrated, never asserted** — a box flips only after the task's
   done-when actually ran and passed, plus the **anti-fake-green rule**: tests are
-  never weakened, skipped, deleted, or edited to pass.
+  never weakened, skipped, deleted, or edited to pass — and where you enforce
+  coverage, the threshold, its scope, and its exclusion lists are off-limits too
+  (a red gate means missing tests, not a config to lower).
 - **Bounded fix-loops** — at most 3 attempts per task (per-project override),
   then an honest stop: unchecked box, failure note, explicit WIP commit a fresh
   session can pick up cold.
@@ -658,11 +760,13 @@ evidence.
 - A **criterion-by-criterion test audit**: does a test cover each criterion, does
   it assert what the criterion actually says (weakened proxies rejected), is it
   really exercised — plus an anti-fake-green review of the feature's test diff
-  (loosened assertions, new skips, mocked-away behavior). Rejected tests are
-  **corrected toward the criterion**, never toward the code, in separate commits.
+  (loosened assertions, new skips, mocked-away behavior, and — where coverage is
+  enforced — a quietly lowered threshold or a widened exclusion list). Rejected
+  tests are **corrected toward the criterion**, never toward the code, in separate
+  commits.
 - **Independent execution** — every suite re-run fresh from the repo state with
-  the harness's own commands (feature, whole-repo, E2E, migrations); no reported
-  green is trusted, only observed green counts.
+  the harness's own commands (feature, whole-repo, E2E, the coverage gate as CI
+  runs it, migrations); no reported green is trusted, only observed green counts.
 - **Direct requirement verification** beyond the tests: side-effect FRs observed
   (the audit log's entries inspected, not just a 200), binding NFRs measured where
   cheaply measurable (environment-caveated; infrastructure-needing NFRs recorded
@@ -750,8 +854,8 @@ the same spot).
   plan.
 
 It owns exactly one artifact — the defect ledger `docs/defects.md` — and writes no
-pipeline document or RTM column. Deployment is out of scope; it points there when
-the plan completes undeployed.
+pipeline document or RTM column. Deployment is out of scope; it points at
+[`initial-deployment`](#initial-deployment) when the plan completes undeployed.
 
 > Install with `npx skills add ... --skill sdlc-orchestrator`, or copy it in
 > by hand following [Manual install (Claude Code)](#install-claude-code) above

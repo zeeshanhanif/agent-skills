@@ -67,7 +67,7 @@ trust disk: read the artifacts the stage produced, not a summary of them.
   feature-implementation's meta-signal: recommend the feature return to
   detailed-design.
 - **Plan complete** → all features verified: summarize, then point at the
-  edges — first-deploy if never run; the standing recommendation to run the
+  edges — initial-deployment if never run; the standing recommendation to run the
   full suites once more post-final-feature is already covered by the last
   acceptance run.
 
