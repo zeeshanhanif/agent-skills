@@ -27,7 +27,7 @@ error-level event from the deployed service, observe the alert.
 The services' structured logs (scaffolding wired them) reachable in the
 provider's log surface, retention at the provider default unless an SRS NFR
 says otherwise (cite it), and the *how to read them* commands recorded in
-deploy-notes.
+deployment-notes.
 
 ## Backups — and the restore proof
 
@@ -36,7 +36,7 @@ default unless an NFR states RPO (cite it). Then the part that's usually
 skipped and here is not: **perform one restore** — to a scratch
 instance/database, verify the skeleton's data round-trips against it, tear
 the scratch down. A backup never restored is a hope, not a capability.
-Record the restore procedure verbatim in deploy-notes — during a real
+Record the restore procedure verbatim in deployment-notes — during a real
 incident nobody wants to derive it.
 
 ## TLS and domain
@@ -58,5 +58,5 @@ difference between a surprise and an email.
 Explicitly *not* here: dashboards, tracing, SLOs/error budgets, paging
 policies, load testing, multi-region drills, cost optimization. When the
 project needs them, that's the fuller operations concern — record in
-deploy-notes anything from this run that obviously wants promoting there
+deployment-notes anything from this run that obviously wants promoting there
 (e.g., "error volume suggests a dashboard early").

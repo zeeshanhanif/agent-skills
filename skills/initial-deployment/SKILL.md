@@ -36,7 +36,7 @@ Three principles govern it:
    and console steps are **verified against live provider docs** at run time —
    never recited from memory (they drift faster than generators do).
 2. **Money and credentials get gates.** Provisioning creates billable
-   resources: the deploy plan (what gets created, environments, rough cost
+   resources: the deployment plan (what gets created, environments, rough cost
    class) is played back for **one explicit confirmation** before anything is
    created. Credentials stay in the user's hands: the skill preflights that
    the provider CLI is authenticated and **blocks with instructions when it
@@ -80,7 +80,7 @@ Defaults; user paths win; source-gated citation throughout.
 - **SRS** — `docs/srs.md`, light touch: NFRs constraining the deployment
   itself (residency, availability topology, compliance), cited by ID.
 - **RTM: no writes.** Deployment realizes infrastructure, not requirements.
-  Pending-environment measurements are recorded in deploy-notes;
+  Pending-environment measurements are recorded in deployment-notes;
   formally updating acceptance reports and the RTM stays
   acceptance-verification's jurisdiction (re-run it now that the environment
   exists).
@@ -89,7 +89,7 @@ Defaults; user paths win; source-gated citation throughout.
 
 1. **The running system** — provisioned environments, deployed build, CD
    wired so the pipeline ships future merges per the architecture's cadence.
-2. **`docs/deploy-notes.md`** — the project-owned record: what was
+2. **`docs/deployment-notes.md`** — the project-owned record: what was
    provisioned (with provider identifiers), environment URLs, the exact
    deploy/rollback commands, secret-store locations (never values), pending-
    environment measurement results, costs observed/expected, deviations from
@@ -97,26 +97,32 @@ Defaults; user paths win; source-gated citation throughout.
 3. **Closed pending items** — the skeleton done-when's deployed half
    demonstrated; pending-environment NFRs measured, with a recommendation to
    re-run acceptance-verification for formal verdicts.
+4. **One narrow write into `docs/scaffold-notes.md`** — scaffolding's
+   artifact, and the *only* foreign document this skill touches: the pending
+   marker it left ("deployed half: pending initial deployment") is closed in
+   place, with date and evidence. Nothing else in that file is edited — the
+   marker was written to be closed by exactly this run; every other record of
+   this deployment lives in deployment-notes.
 
 ## Workflow
 
 ### Phase 0 — Resume check (always first)
 
 Read `references/deployment-guide.md` (Checkpointing). Look for
-`docs/.deploy-progress.md` and live signs of partial provisioning. Partial →
+`docs/.deployment-progress.md` and live signs of partial provisioning. Partial →
 **never blindly re-provision**: summarize what exists (verified against the
 provider, not just the tracker), confirm, resume idempotently at the first
 pending step. Provisioning found that the tracker can't account for → stop
 and ask; this skill never assumes ownership of infrastructure it can't
 explain.
 
-### Phase 1 — Ingest and confirm the deploy plan (the money gate)
+### Phase 1 — Ingest and confirm the deployment plan (the money gate)
 
 Extract the deployment contract: target platform (ADR-cited), topology per
 the deployment view, environments to create, stores to provision, domain/TLS
 expectations, CD trigger (merge? tag?). Elicit only genuine gaps (region,
 tier/size — flag architecture-level gaps as candidate amendments). Play back
-the **deploy plan**: what gets created where, the rough cost class, what the
+the **deployment plan**: what gets created where, the rough cost class, what the
 first deployed artifact will be — and get explicit confirmation. **Nothing
 billable exists before this nod.**
 
@@ -144,7 +150,7 @@ user the exact provider-native steps to enter each value **out-of-band**.
 Verify wiring with a non-secret canary first. No value ever appears in a
 file, a note, chat, or a shell history this skill writes.
 
-### Phase 5 — CD
+### Phase 5 — CD: the pipeline ships
 
 Extend the green CI to actual delivery per the architecture's cadence:
 deploy-on-merge to the lower environment, promotion per the deployment view
@@ -160,7 +166,7 @@ features have extended the suite, the feature E2E paths too (point the suite
 at the deployed URL where the harness supports it; otherwise the documented
 smoke equivalent, said plainly). State the skeleton result against the plan's
 done-when wording: its deployed half, finally demonstrated (record it in
-deploy-notes and scaffold-notes' pending item). A red in a *feature's* E2E
+deployment-notes and scaffold-notes' pending item). A red in a *feature's* E2E
 path is a deployment finding, not a skeleton failure — report it, and route
 a genuine feature failure in the live environment to acceptance-verification
 (re-run it there); this skill measures, the auditor rules.
@@ -178,7 +184,7 @@ not optional.
 
 From the acceptance reports' pending-environment lists (when present): run
 the measurements now possible against the real environment (response-time
-bounds, availability probes as feasible), record results in deploy-notes with
+bounds, availability probes as feasible), record results in deployment-notes with
 environment context, and recommend re-running acceptance-verification for
 the formal verdict/RTM updates — jurisdiction stays with the auditor.
 
@@ -196,7 +202,8 @@ measured NFRs.
 Does **not**: choose or change the platform/topology (architecture's job —
 gaps go back as amendments); handle credential or secret values; build
 features or fix code; perform full day-2 operations (the minimum floor only);
-write the RTM.
+write the RTM; write any other skill's artifacts beyond closing
+scaffold-notes' own pending marker (Outputs 4).
 
 ## What good looks like
 
@@ -208,7 +215,7 @@ write the RTM.
   and deployed half (here), both demonstrated.
 - Restore was performed, not assumed. Alerting reached the human once, as a
   test.
-- deploy-notes lets a cold session (or a human) operate the deployment:
+- deployment-notes lets a cold session (or a human) operate the deployment:
   URLs, commands, rollback, secret locations — no tribal knowledge.
 - A revoked credential or missing tool produced a clear blocking ask — never
   a workaround, never a stored secret.
