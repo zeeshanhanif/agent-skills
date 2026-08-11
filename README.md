@@ -447,7 +447,7 @@ skills/project-scaffolding/
 
 The last mile scaffolding stopped short of: **deploy-ready → running in the cloud.**
 Scaffolding wrote your deployment configs, environment parameterization, and CI and
-then stopped, by contract, at "the first deploy is your step." This is that step —
+then stopped, by contract, at "the initial deployment is your step." This is that step —
 same character as scaffolding: real execution against live reality, empirical
 verification, honest notes, and checkpointed progress that never blindly
 re-provisions.
@@ -456,7 +456,7 @@ Three principles govern it: **the target is an input, never a decision** (the
 architecture's ADRs and deployment view already chose the platform and topology —
 gaps go back as candidate amendments; the process is cloud-agnostic, and CLI
 specifics are verified against **live provider docs**, never recited from memory);
-**money and credentials get gates** (the deploy plan is played back for one explicit
+**money and credentials get gates** (the deployment plan is played back for one explicit
 confirmation before anything billable is created, and the skill never asks for,
 stores, or writes a secret value — it blocks with instructions if your provider CLI
 isn't authenticated); and **deployed means demonstrated** (the skeleton exercised
@@ -482,8 +482,9 @@ many more candidate causes when something fails.
   observed pipeline run.
 - **A live end-to-end exercise** — the skeleton's own test run against the deployed
   environment, closing the plan's walking-skeleton done-when (scaffolding proved the
-  local half; this is the deployed half), plus whatever feature E2E paths the suite
-  has grown.
+  local half; this is the deployed half, and its *pending initial deployment* marker
+  in `scaffold-notes.md` is closed in place with the evidence), plus whatever feature
+  E2E paths the suite has grown.
 - **The day-1 operations floor**, folded in rather than deferred: uptime checks on
   each public surface, error alerting to a channel you actually read, reachable
   logs, TLS/domain, and backups **with a restore performed once** — a backup never
@@ -491,14 +492,17 @@ many more candidate causes when something fails.
 - **Pending-environment NFRs measured** — the items acceptance reports had to defer
   for want of a real environment, run now and recorded (formal verdicts stay
   acceptance-verification's call; re-run it).
-- **`docs/deploy-notes.md`** — what was provisioned, environment URLs, the exact
+- **`docs/deployment-notes.md`** — what was provisioned, environment URLs, the exact
   deploy *and rollback* commands, secret store locations (never values), observed
   costs, and every deviation with its reason, so a cold session or a teammate can
-  operate the deployment.
+  operate the deployment. (Progress is checkpointed in `docs/.deployment-progress.md`,
+  so an interrupted run resumes instead of re-provisioning.)
 
-It writes no RTM column — deployment realizes infrastructure, not requirements. It
-also won't choose or change your platform or topology (that's the architecture's
-job), handle credential values, build features, or take on full day-2 operations.
+It writes no RTM column — deployment realizes infrastructure, not requirements — and
+the only file it touches that another skill owns is that one pending marker in
+`scaffold-notes.md`. It also won't choose or change your platform or topology (that's
+the architecture's job), handle credential values, build features, or take on full
+day-2 operations.
 
 > Install with `npx skills add ... --skill initial-deployment`, or copy it in by
 > hand following [Manual install (Claude Code)](#install-claude-code) above (swap
