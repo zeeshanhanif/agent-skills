@@ -19,8 +19,10 @@ checklist. From ux-foundations/design.md/tokens.json: which units are UI
 surfaces and therefore get the token wiring.
 
 The **scaffold plan playback** is one tight block: units → stacks (with ADR
-refs), repo shape, local data story (e.g., docker-compose Postgres), CI
-target, done-when. One confirmation, then execute.
+refs), repo shape, **the local stack** (the store's compose service and
+pinned version — or the recorded deviation for emulator/embedded stores —
+plus which non-store dependencies go in compose versus expected on the
+machine), CI target, done-when. One confirmation, then execute.
 
 ## Repo shape
 
@@ -51,7 +53,8 @@ For each unit:
    recommended layout, not folklore. Note the sources in scaffold-notes.
 
 Preflight comes first: required runtimes and tools at the versions the
-generators need, Docker if the local data story needs it. Anything missing is
+generators need, and **Docker when the confirmed plan uses compose**.
+Anything missing is
 a blocking ask with exact install guidance — never silently substituted.
 
 ## Generation (Phase 4, first half)

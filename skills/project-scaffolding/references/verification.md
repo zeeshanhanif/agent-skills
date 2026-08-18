@@ -22,9 +22,13 @@ them.
 
 ## 3. The skeleton test passes
 
-The end-to-end test (skeleton-guide) runs green locally, with the local data
-store up — **in the E2E workspace, using the architecture-named E2E
-framework** (and the unit harnesses match the architecture's named runners;
+The end-to-end test (skeleton-guide) runs green locally against a
+**cold-started** local stack — brought up from the committed compose file in
+this run (`down` then `up`), not against a store that happened to already be
+running; for a recorded deviation (emulator or embedded store), the
+equivalent cold start. The up/down/reset commands are recorded in
+scaffold-notes. The test runs **in the E2E workspace, using the
+architecture-named E2E framework** (and the unit harnesses match the architecture's named runners;
 any silent-architecture fallback is noted in scaffold-notes). **The coverage
 configuration matches the architecture's stance**: enforced → the gate is
 present at the stated threshold and was seen executing in the skeleton's own
@@ -67,7 +71,8 @@ available locally. Not executed, not provisioned — validity only.
 ## 8. Repo hygiene
 
 `docs/` present with the pipeline documents; scaffold-notes complete
-(preflight, generators+versions+flags, deviations, removals, decisions);
+(preflight, generators+versions+flags, **local stack: up/down/reset commands
+and any store deviation with its reason**, deviations, removals, decisions);
 progress tracker marked complete; **a config template per deployable unit,
 placeholders only — no working values and no secrets, with the local config
 file generated and gitignored**; no committed secrets (scan for obvious

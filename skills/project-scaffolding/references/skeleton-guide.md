@@ -18,10 +18,26 @@ with stubs exactly where the plan said stubs.
   their full depth).
 - **Worker/async unit** (if the architecture has one) — one no-op job through
   the real queue/trigger mechanism locally, proving the async path exists.
-- **Database/store** — running locally (docker-compose or the ecosystem's
-  local equivalent), one table/collection the skeleton reads and writes, plus
-  the migration mechanism initialized (the *mechanism*, with migration 001 —
-  not the schema; schemas are per-slice detailed-design work).
+- **Database/store — running locally, via a committed compose file by
+  default.** When the architecture's store has a first-party container image,
+  the local story is `docker-compose.yml` at the repo root: one service per
+  store, **pinned to the same major version the deployed environment will
+  run** (a local Postgres 16 against a deployed 14 is a bug factory), data in
+  **named volumes** so it survives `down`/`up`, and the up / down / reset
+  commands recorded in scaffold-notes. Deviate only when compose genuinely
+  can't serve: a managed-only store with no first-party image (use the
+  vendor's emulator or local mode) or an embedded store (SQLite, DuckDB —
+  the "local store" is a file). **Record the deviation and its reason** in
+  scaffold-notes. Either way: one table/collection the skeleton reads and
+  writes, plus the migration mechanism initialized (the *mechanism*, with
+  migration 001 — not the schema; schemas are per-slice detailed-design work).
+- **Other local dependencies — ask once.** For each non-store dependency the
+  architecture named (cache, queue, object storage, mail catcher), ask
+  whether it belongs in the compose file or is expected already running on
+  the developer's machine. Both are legitimate — some teams want one
+  self-contained stack, others already run these natively and don't want a
+  second copy. The answer shapes the compose file and belongs in the
+  scaffold-plan playback; record it in scaffold-notes.
 - **The end-to-end test** — one automated test driving the whole path:
   UI-or-API entry → store → back, asserting the round trip. This test *is*
   the done-when condition's local half, encoded — written in the **E2E
