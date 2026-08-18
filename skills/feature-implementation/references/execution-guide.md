@@ -47,6 +47,23 @@ committed, nothing important only in memory.
    leftovers; tasks.md box checked; commit
    `FEAT-NNN T<k>: <imperative summary>`. One task, one commit — don't batch.
 
+## Tasks that introduce a configuration variable
+
+A task needing a new environment variable (a service URL, a key, a tunable)
+handles it **in the same task**, three steps:
+
+1. **Add it to the owning unit's config template** — name plus placeholder,
+   never a working value; mark it under the secrets grouping if disclosure
+   would cause harm, and note its scope if it isn't universal (`# prod only`).
+   The templates are the project's variable inventory; an unrecorded variable
+   effectively doesn't exist.
+2. **Set it in the local config** so the task's own done-when can actually
+   run — real local value, gitignored file, never the template.
+3. **Flag it in the delivery summary as a deployment-affecting change** —
+   "FEAT-007 adds `REDIS_URL`; deployed environments need it before the next
+   deploy." A variable not captured at birth becomes a service that dies on
+   boot after a perfectly green pipeline.
+
 ## UI tasks specifically
 
 - Screens come from the manifest entry: **registered/generated** → realize

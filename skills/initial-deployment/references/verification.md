@@ -36,8 +36,12 @@ with its cause — never silently shipped.
   feature failure → re-run acceptance-verification), never folded into the
   skeleton verdict and never left unreported.
 
-## 4. Secrets hygiene
+## 4. Configuration and secrets hygiene
 
+- **Every variable the units' templates require exists in each deployed
+  environment** — verified against the platform before the deploy was
+  attempted, scope markers honored; the chosen config mechanism is recorded
+  in deployment-notes.
 - Services read every secret from the store (no plaintext env values in
   configs/artifacts); the canary flow was exercised; **no secret value
   appears in anything this skill wrote** — deployment-notes, configs, commit

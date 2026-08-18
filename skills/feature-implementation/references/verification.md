@@ -47,6 +47,9 @@ green here fails louder there.
 - UI: screens match their manifest sources; **no raw values where tokens
   exist** (grep the feature's UI diff for hex/px literals that design.md
   tokenizes); state supplements implemented.
+- **New configuration variables** this feature introduced are in their unit's
+  template (placeholder only, correctly marked) and named in the delivery
+  summary as deployment-affecting.
 - Scope: the diff is the feature — `git diff` against the pre-feature state
   touches only files the tasks required (plus their tests). Anything else is
   either reverted or explained in the summary.

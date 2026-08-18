@@ -58,10 +58,33 @@ checklist, not beyond it:
   report generation when report-only, nothing when none) — on the target the
   plan or user named. It must be written to pass — a red pipeline at delivery
   is a verification failure, not a TODO.
-- **Environments as config**: dev/staging/prod configuration files or
-  parameterization per the architecture's deployment view — *written, not
-  provisioned*. Secrets handled by the ecosystem's standard mechanism with
-  placeholder documentation, never committed values.
+- **Config templates, one per deployable unit**: every unit that reads
+  configuration gets its own template beside its code, in **that stack's
+  idiom** (`.env.example` in Node ecosystems, whatever the chosen stack uses
+  elsewhere — never hard-code one ecosystem's convention). Contents are
+  variable **names with placeholders only** — never working values, never a
+  secret, not even a local one. Two inline markers carry what the names
+  can't: a secrets grouping (`# --- secrets ---`) and scope notes where a
+  variable isn't universal (`# prod only`). **These templates are the
+  project's variable inventory** — no separate list exists to drift from them.
+- **Config reading wired from day one**: every unit reads its configuration
+  from the environment *in the walking skeleton itself* — no hardcoded hosts,
+  ports, or URLs. The skeleton's round trip must run on values that came from
+  config; that's what makes the pattern structural instead of a retrofit
+  three features later, when half the code has already baked constants in.
+- **Local config: generated, then asked**: scaffolding **generates** the
+  gitignored local config file per unit, filling everything it can derive
+  from what it just created (the local store's URL from the compose file it
+  wrote, the ports it chose, sensible non-secret defaults). It **asks the
+  user only for values it genuinely cannot know** — third-party keys — and
+  only when the skeleton needs them to pass. This step is blocking: the
+  skeleton test can't be verified without it. Record how to recreate the file
+  in scaffold-notes.
+- **Deployed config is not scaffolding's job**: no deployed environment's
+  values are created here — those are supplied at initial deployment, through
+  whatever mechanism that platform offers. A user who wants a file-style
+  config for a VM-target deploy can create one; it changes nothing in the
+  pipeline.
 - **Observability hooks**: structured logging in every unit at minimum;
   metrics/tracing scaffolded only if the architecture's cross-cutting concepts
   demanded them at skeleton stage.

@@ -29,7 +29,9 @@ any silent-architecture fallback is noted in scaffold-notes). **The coverage
 configuration matches the architecture's stance**: enforced → the gate is
 present at the stated threshold and was seen executing in the skeleton's own
 CI-config run; report-only → the report generates; none → no coverage
-tooling exists. This **is** the
+tooling exists. **The skeleton ran on config-sourced values** — every unit
+read its configuration from the environment, not from hardcoded constants
+(spot-check the skeleton path for baked-in hosts/ports/URLs). This **is** the
 plan's done-when condition, local half. State the result against the
 done-when's wording explicitly. The deployed half is
 **pending initial deployment** — recorded as such in scaffold-notes and the delivery
@@ -66,8 +68,11 @@ available locally. Not executed, not provisioned — validity only.
 
 `docs/` present with the pipeline documents; scaffold-notes complete
 (preflight, generators+versions+flags, deviations, removals, decisions);
-progress tracker marked complete; no committed secrets (scan for obvious
-patterns); agent-instructions paths all resolve; stubs are marked and point at
+progress tracker marked complete; **a config template per deployable unit,
+placeholders only — no working values and no secrets, with the local config
+file generated and gitignored**; no committed secrets (scan for obvious
+patterns, and confirm the local config is not tracked);
+agent-instructions paths all resolve; stubs are marked and point at
 their replacing slices.
 
 ## Reporting
