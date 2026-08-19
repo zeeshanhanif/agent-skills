@@ -36,7 +36,12 @@ committed, nothing important only in memory.
      demonstration either. Verification is universal; test artifacts are not.
 5. **Run the done-when** — actually run it: the test command from
    scaffold-notes/agent-instructions, the migration against the local store,
-   the rendered screen against its spec. Green → proceed; red → the fix-loop.
+   the rendered screen against its spec. **Start from a known state**: don't
+   trust something already listening on the expected port — a leftover
+   process from an earlier session serves *old code*, and a test that passes
+   against it is a false green on work this run never did. Verify the running
+   process is this run's, or restart it (bring the local stack up per
+   scaffold-notes' commands). Green → proceed; red → the fix-loop.
    **Verification timing is three-tier**: a task's own done-when is all that
    runs per task (task-scoped, fast — never the E2E suite, which mid-feature
    has no complete path to traverse); the feature's E2E extension runs at its
@@ -123,6 +128,17 @@ the feature developer-done.
   it carries a WIP note, that note is the starting context — verify the
   described state against the actual code (the note may predate a human's
   intervention), then continue inside the remaining attempt budget.
+- **Process hygiene — stop what this run started.** Anything started to
+  demonstrate a done-when (dev servers, workers, the local stack) is stopped
+  when that demonstration completes, tracked by the handle it was started
+  with. At session end — **including a blocked stop, where it matters most** —
+  nothing this run started is still running. Something deliberately left up
+  (a dev server shared across several tasks in one session) is named in the
+  delivery summary with the command to stop it. **Never kill by port scan or
+  name pattern**: that port may belong to the user's editor, another project,
+  or a database they run natively — this skill stops only what it owns, and
+  handles a stale foreign process by starting clean (above), never by killing
+  it.
 - tasks.md is updated **in place, boxes only** — never restructured. A task
   that proves wrong-sized or wrongly ordered means the design changed:
   escalate, don't edit the program mid-run.

@@ -41,6 +41,13 @@ done-when's wording explicitly. The deployed half is
 **pending initial deployment** — recorded as such in scaffold-notes and the delivery
 summary, never claimed.
 
+**Leave the machine as it was found.** Processes this run started to prove
+the skeleton — dev servers, workers, the local stack — are stopped at
+delivery, or the summary states plainly what is still running and the command
+to stop it. Stop only what this run started, by its own handle; never kill by
+port scan or name pattern (that port may be the user's editor or another
+project). This is the exit-side counterpart to the cold-start rule above.
+
 ## 4. Boundaries are enforced, not decorative
 
 The lint/import-boundary rules run and pass — and prove they *work*:
