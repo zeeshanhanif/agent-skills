@@ -52,7 +52,7 @@ unverified.
 
 The shell renders using token-derived values. Spot-check: a token value from
 tokens.json appears in the rendered shell via the wiring (not hand-copied).
-The agent-instructions file references design.md and tokens.json at paths that
+AGENTS.md references design.md and tokens.json at paths that
 resolve.
 
 ## 6. CI config is valid
@@ -70,6 +70,12 @@ available locally. Not executed, not provisioned — validity only.
 
 ## 8. Repo hygiene
 
+**No generator boilerplate README survives** — the root README describes
+this system (units, prerequisites, local stack, tests, docs), and each unit
+README that exists is unit-scoped and links up rather than duplicating;
+**`AGENTS.md` at the root carries the substance and `CLAUDE.md` contains only
+the `@AGENTS.md` pointer**; no tool was installed globally without an
+explicit ask.
 `docs/` present with the pipeline documents; scaffold-notes complete
 (preflight, generators+versions+flags, **local stack: up/down/reset commands
 and any store deviation with its reason**, deviations, removals, decisions);
@@ -77,7 +83,7 @@ progress tracker marked complete; **a config template per deployable unit,
 placeholders only — no working values and no secrets, with the local config
 file generated and gitignored**; no committed secrets (scan for obvious
 patterns, and confirm the local config is not tracked);
-agent-instructions paths all resolve; stubs are marked and point at
+AGENTS.md paths all resolve; stubs are marked and point at
 their replacing slices.
 
 ## Reporting

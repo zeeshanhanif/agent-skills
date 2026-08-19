@@ -58,7 +58,7 @@ From ux-foundations' outputs:
   verification check is literal: delete tokens.json's values and the shell
   visibly breaks). Don't hand-copy values into components — the wiring is the
   point.
-- **design.md referenced from the agent-instructions file**, so every future
+- **design.md referenced from AGENTS.md**, so every future
   UI session builds inside the system. The shell's own minimal styling (layout,
   nav) uses the tokens, demonstrating the pattern per-slice work will follow.
 - Multi-surface projects: each frontend unit gets the wiring; surface-specific

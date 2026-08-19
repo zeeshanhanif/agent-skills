@@ -5,6 +5,22 @@ generating, and structuring. The philosophy throughout: **the skill encodes
 process, not stack structures** — the executing agent's knowledge plus live
 verification plus official generators supply the per-ecosystem specifics.
 
+## Installation discipline
+
+Anything the scaffolding process installs goes **project-local first**:
+dev dependencies in the unit's manifest (pinned by the lockfile), or a
+one-off runner (`npx`, `uvx`, and equivalents) for tools used once. Reason:
+a globally installed CLI at version X on this machine and version Y on CI
+produces different output from the same repo — project-local tooling is
+reproducible everywhere and doesn't mutate a machine the skill doesn't own.
+
+If something genuinely cannot be local, **ask first**: name the tool, the
+exact install command, and why a local install won't serve. Never install
+globally on the skill's own initiative. Prerequisites that are ambient by
+nature — the language runtime, the package manager, Docker — aren't this
+rule's concern; they're preflight checks, and missing ones are blocking asks
+with install guidance (above).
+
 ## Extracting the build contract (Phase 1)
 
 From the architecture: each **container** in the container diagram becomes a
@@ -41,10 +57,13 @@ For each unit:
 1. Identify the ecosystem's **current official generator/initializer** — the
    framework's own CLI, not a community starter kit, unless the architecture
    mandated a specific starter.
-2. **Verify against live documentation when uncertain** — generator names,
-   flags, and defaults change between versions; memory of a CLI's interface is
-   the least reliable knowledge there is. Live reality always wins over both
-   memory and any written note.
+2. **Verify against live documentation before first use — always, not only
+   when uncertain.** Generator names, flags, and defaults change between
+   versions; memory of a CLI's interface is the least reliable knowledge
+   there is, and confidence in it is exactly the signal that can't be
+   trusted. One lookup removes the judgment call. Use the **current** release
+   unless the architecture pinned a version; live reality always wins over
+   both memory and any written note.
 3. Record into `docs/scaffold-notes.md` *before running*: generator, version,
    the exact flags chosen and why (interactive prompts answered how, and on
    what basis — architecture constraint, user answer, or default).
@@ -81,10 +100,27 @@ What generators don't do and this skill owns:
   routes, and default styling that contradict the architecture or design
   system. Remove what conflicts; keep what's neutral. Every removal noted in
   scaffold-notes (future sessions shouldn't wonder where the demo page went).
+- **READMEs — replace generator boilerplate, everywhere it appears.** Every
+  generator leaves a starter README describing *a template*, not this system;
+  it is misleading from the moment it lands. **Root README (always)**: what
+  the system is (from the SRS/architecture), the units and where each lives,
+  prerequisites, how to bring up the local stack, how to run the tests, and
+  where the pipeline docs are. **Per-unit README (only where the unit has
+  something of its own to say** — deployable apps usually do, thin internal
+  packages usually don't; no empty ceremony files): that unit's purpose in a
+  line, its own run/test/build commands, its config template. Unit READMEs
+  **link up to the root** for anything system-wide rather than restating it —
+  duplicated content is what drifts. A single-unit project at the root
+  collapses to one README, no duplication to manage.
 - **Carry `docs/` into the repo** — the pipeline documents move in (or are
   confirmed already in place if scaffolding runs inside the existing project
   folder), so the repo is self-describing.
-- **Agent-instructions file** (CLAUDE.md or equivalent): points at the
+- **Agent instructions — `AGENTS.md` at the root, with `CLAUDE.md` as a
+  one-line pointer to it** (`@AGENTS.md`). AGENTS.md holds all the substance;
+  CLAUDE.md holds nothing but the reference. Reason: AGENTS.md is the
+  cross-tool convention several coding agents read, so one file serves every
+  tool and there is exactly one source of truth — two files with overlapping
+  content inevitably diverge. AGENTS.md points at the
   pipeline docs (srs, architecture, plan), **design.md and tokens.json** (so
   every UI-building session inherits the design system), the repo's run/test
   commands, and the boundary rules. Keep it short and pointer-heavy — it's an
