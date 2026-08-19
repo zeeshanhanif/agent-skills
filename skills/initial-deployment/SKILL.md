@@ -142,13 +142,29 @@ view and provider reality are handled conform-or-escalate: trivial
 realization details → do and record; topology-changing → architecture
 amendment path.
 
-### Phase 4 — Secrets, made real
+### Phase 4 — Configuration and secrets, made real
 
-Replace scaffolding's placeholders with the provider's secret mechanism:
-create the stores/references, wire the services to read them, and hand the
-user the exact provider-native steps to enter each value **out-of-band**.
-Verify wiring with a non-secret canary first. No value ever appears in a
-file, a note, chat, or a shell history this skill writes.
+**First ask how deployed configuration is supplied on this platform**: plain
+platform config for everything, the secret store for everything, or the split
+(non-secrets in config vars, secrets in the store — the templates' secret
+markers are the divide). Recommend the split, honestly: secret stores usually
+charge per secret or per access and add rotation/audit machinery `LOG_LEVEL`
+doesn't need, while plain config vars for genuinely sensitive values give up
+the audit trail. The user's answer wins; record it in deployment-notes so
+re-runs and future operators know how the project is wired.
+
+**Then reconcile before deploying**: union the deployable units' config
+templates and compare against what the target environment actually has.
+Anything missing **blocks the deploy** — with the exact list and the
+provider-native steps to set each one. This turns the worst deployment
+failure mode (green pipeline, dead service, confusing boot logs) into a
+pre-flight message.
+
+Then make them real per the chosen mechanism: create the entries/references,
+wire the services to read them, and hand the user the exact provider-native
+steps to enter each value **out-of-band**. Verify wiring with a non-secret
+canary first. No value ever appears in a file, a note, chat, or a shell
+history this skill writes.
 
 ### Phase 5 — CD: the pipeline ships
 

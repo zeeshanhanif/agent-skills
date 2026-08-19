@@ -159,7 +159,13 @@ hint in §2.4). Elicit this.
 - **Release cadence and process.** CI/CD expectations, how often they deploy.
 - **Observability.** What do they need to see — logs, metrics, traces, alerting?
   Any existing tooling?
-- **Environments.** Just prod, or dev/staging/prod?
+- **Environments.** Which **deployed** environments does this project need —
+  prod only, stage + prod, dev + stage + prod, or something else? Ask what
+  differs between them where it's structurally relevant (scale tier, data
+  isolation, which integrations run in test mode). **Local isn't listed
+  here**: it's universal, needs no target, no provisioning, and no promotion
+  gate, so it doesn't belong in the deployment view — scaffolding always sets
+  it up because scaffolding always runs locally.
 - **Testing frameworks.** *(after the stack is settled — the options depend on
   it)* Ask whether the user has framework preferences or org mandates for
   **unit/integration testing** (per stack unit — the backend's runner and the

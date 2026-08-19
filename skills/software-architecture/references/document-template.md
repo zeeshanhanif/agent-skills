@@ -70,7 +70,11 @@ structure.
 ## 7. Deployment View  *[scale]*
 The mapping of software onto infrastructure: environments, regions/zones,
 networking, scaling. Include a **deployment diagram** when the topology is
-non-trivial. For a single managed service this can be a sentence.
+non-trivial. For a single managed service this can be a sentence. State the
+**deployed environment set** and their promotion order (local is universal
+and not listed — it has no target or gate). Not here: variable names, the
+config mechanism, or the secret store — those are deployment-time decisions
+made against the actual platform.
 
 ## 8. Cross-cutting Concepts  *[essential, but sized to stakes]*
 The decisions that span the whole system. Cover the ones that matter here:

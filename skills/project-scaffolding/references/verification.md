@@ -22,14 +22,20 @@ them.
 
 ## 3. The skeleton test passes
 
-The end-to-end test (skeleton-guide) runs green locally, with the local data
-store up — **in the E2E workspace, using the architecture-named E2E
-framework** (and the unit harnesses match the architecture's named runners;
+The end-to-end test (skeleton-guide) runs green locally against a
+**cold-started** local stack — brought up from the committed compose file in
+this run (`down` then `up`), not against a store that happened to already be
+running; for a recorded deviation (emulator or embedded store), the
+equivalent cold start. The up/down/reset commands are recorded in
+scaffold-notes. The test runs **in the E2E workspace, using the
+architecture-named E2E framework** (and the unit harnesses match the architecture's named runners;
 any silent-architecture fallback is noted in scaffold-notes). **The coverage
 configuration matches the architecture's stance**: enforced → the gate is
 present at the stated threshold and was seen executing in the skeleton's own
 CI-config run; report-only → the report generates; none → no coverage
-tooling exists. This **is** the
+tooling exists. **The skeleton ran on config-sourced values** — every unit
+read its configuration from the environment, not from hardcoded constants
+(spot-check the skeleton path for baked-in hosts/ports/URLs). This **is** the
 plan's done-when condition, local half. State the result against the
 done-when's wording explicitly. The deployed half is
 **pending initial deployment** — recorded as such in scaffold-notes and the delivery
@@ -46,7 +52,7 @@ unverified.
 
 The shell renders using token-derived values. Spot-check: a token value from
 tokens.json appears in the rendered shell via the wiring (not hand-copied).
-The agent-instructions file references design.md and tokens.json at paths that
+AGENTS.md references design.md and tokens.json at paths that
 resolve.
 
 ## 6. CI config is valid
@@ -64,10 +70,20 @@ available locally. Not executed, not provisioned — validity only.
 
 ## 8. Repo hygiene
 
+**No generator boilerplate README survives** — the root README describes
+this system (units, prerequisites, local stack, tests, docs), and each unit
+README that exists is unit-scoped and links up rather than duplicating;
+**`AGENTS.md` at the root carries the substance and `CLAUDE.md` contains only
+the `@AGENTS.md` pointer**; no tool was installed globally without an
+explicit ask.
 `docs/` present with the pipeline documents; scaffold-notes complete
-(preflight, generators+versions+flags, deviations, removals, decisions);
-progress tracker marked complete; no committed secrets (scan for obvious
-patterns); agent-instructions paths all resolve; stubs are marked and point at
+(preflight, generators+versions+flags, **local stack: up/down/reset commands
+and any store deviation with its reason**, deviations, removals, decisions);
+progress tracker marked complete; **a config template per deployable unit,
+placeholders only — no working values and no secrets, with the local config
+file generated and gitignored**; no committed secrets (scan for obvious
+patterns, and confirm the local config is not tracked);
+AGENTS.md paths all resolve; stubs are marked and point at
 their replacing slices.
 
 ## Reporting

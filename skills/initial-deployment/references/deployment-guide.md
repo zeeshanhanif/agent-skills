@@ -50,7 +50,22 @@ proceed and record; if it changes the cost class or topology, pause and ask —
 the Phase 1 confirmation covered the plan as stated, not a materially
 different one.
 
-## Secrets (Phase 4) — the never-touch rules
+## Configuration and secrets (Phase 4)
+
+**The mechanism is the user's choice, asked once per project**: plain platform
+config for everything / the secret store for everything / the split, with the
+templates' `# --- secrets ---` markers as the divide. Recommend the split with
+its honest trade-off (per-secret cost and rotation machinery vs. lost audit
+trail), take the user's answer, record it in deployment-notes.
+
+**Reconciliation precedes every environment's first deploy**: union the units'
+config templates → compare against the environment's actual configuration →
+missing variables **block**, listed by name with the provider-native steps to
+set them. Scope markers are honored (a `# prod only` variable isn't demanded
+of staging). Never deploy hoping a value is there; a boot-time crash costs
+far more than a pre-flight check.
+
+### The never-touch rules (under any mechanism)
 
 - The skill creates **references** (the secret store entries, the service
   wiring that reads them) — never values.

@@ -60,7 +60,7 @@ Defaults below; user-provided paths win. Each degrades independently.
   confirm it with the user.
 - **UX foundations** — `docs/ux-foundations.md`, `docs/design.md`,
   `docs/tokens.json`. The UI-shell contract: tokens wired into each frontend
-  surface's token mechanism, design.md referenced from the agent-instructions
+  surface's token mechanism, design.md referenced from AGENTS.md
   file.
 - **SRS** — `docs/srs.md`, light touch: constraints (§2.5) affecting tooling.
 
@@ -77,9 +77,10 @@ contract this skill does not touch `docs/rtm.md`.
    boundaries enforced (folders + import/lint rules), skeleton wired
    end-to-end, one passing end-to-end test, CI config, environment configs,
    deployment config written (not executed), `docs/` carried in.
-2. **Agent-instructions file** (CLAUDE.md or the project's equivalent) —
-   pointing at the pipeline documents, design.md, and the repo's conventions,
-   so every future coding session inherits the context.
+2. **Agent instructions** — `AGENTS.md` at the root carrying the substance
+   (pipeline documents, design.md, conventions, commands), plus `CLAUDE.md`
+   containing only `@AGENTS.md` as a pointer: one source of truth, every
+   coding tool covered, so any future session inherits the context.
 3. **`docs/scaffold-notes.md`** — the project-owned record: generators +
    versions + flags actually used, deviations from expectation, decisions
    made, what's stubbed where. Consumers: future sessions on this project, the
@@ -133,7 +134,7 @@ Run the generators **for real**, per unit, checkpointing after each. Then apply
 the pipeline's layer (scaffolding-guide, Structure): monorepo arrangement,
 module boundaries as folders + import/lint rules (the architecture's seams made
 enforceable), strip generator boilerplate that conflicts with the architecture,
-carry `docs/` into the repo, create the agent-instructions file.
+carry `docs/` into the repo, write AGENTS.md (+ the CLAUDE.md pointer) and the READMEs.
 
 ### Phase 5 — Wire the walking skeleton
 
@@ -157,7 +158,7 @@ Read `references/verification.md`. Verification here means **running things**:
 clean install, every unit builds, the skeleton test passes locally (the plan's
 done-when — local half verified; deployed half recorded as pending first
 deploy), lint/boundary rules pass, CI config valid, tokens actually render in
-the shell, agent-instructions paths resolve. Fix-loop failures; flag anything
+the shell, AGENTS.md paths resolve. Fix-loop failures; flag anything
 unfixable in the delivery summary — never silently ship a broken skeleton.
 
 ### Phase 8 — Deliver
