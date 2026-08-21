@@ -1,287 +1,543 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Working notes for agents editing **this** repository. Not user documentation —
+that's [`README.md`](./README.md), and it must be updated whenever the facts here
+change.
 
-## What this repo is
+## 1. What you are working on
 
-A collection of **Agent Skills** following the open `SKILL.md` standard (see https://agentskills.io). There is no application code, build system, test suite, or linter — the deliverable is prompt/instruction content that Claude (or another agent) loads at runtime. "Correctness" here means the instructions are clear, well-scoped, and trigger reliably, not that anything compiles.
+This repo contains **twelve Agent Skills** (open `SKILL.md` standard) that form one
+SDLC pipeline. There is **no application code, build system, test suite, or
+linter**. The deliverable is instruction content loaded into an agent's context at
+runtime.
 
-Each skill lives under `skills/` as its own directory containing a `SKILL.md` and (optionally) a `references/` folder of supporting guides. There are currently eleven skills. The first five are **one-pass, linear** and run back-to-back as a greenfield requirements-to-running-skeleton pipeline (`requirements-engineering` → `software-architecture` → `ux-foundations` → `implementation-planning` → `project-scaffolding`); the sixth, `initial-deployment`, is also **one-pass** and takes the deploy-ready repo live (recommended right after scaffolding, but supported at any later point); the next four, `detailed-design`, `ui-design`, `feature-implementation`, and `acceptance-verification`, are **per-feature loop skills** that run once per vertical slice, repeatedly, for the life of the project — **in that order**: `detailed-design` designs the *system* half, `ui-design` the *presentation* half, `feature-implementation` builds the feature to *developer-done*, and `acceptance-verification` independently verifies it; the eleventh, `sdlc-orchestrator`, sits **over** the loop as a thin driver/router — it does none of the stages' work, only computes the global position, invokes the right next stage, and routes outcomes and lifecycle events:
-- `skills/requirements-engineering/` — the first SDLC step, upstream of design. Elicits the complete requirements and produces three **markdown** files: the SRS (`docs/srs.md`), a use-case document (`docs/use-cases.md`), and a traceability matrix (`docs/rtm.md`). Functional requirements are written in **EARS syntax** (five constrained sentence patterns) or classic free-form "shall" statements — a **once-per-SRS choice** made at the end of Phase 1, recorded in the SRS header and the tracker, and binding on all later amendments. It has **no upstream document** — it elicits from the user. It also **amends** a finalized SRS (add/modify/remove with stable, never-recycled IDs), so it owns the spec across its whole lifecycle, not just first authoring.
-- `skills/software-architecture/` — **consumes the SRS (primary) and use-case document (secondary)** — defaults `docs/srs.md` + `docs/use-cases.md` — and produces the architecture document (`docs/architecture.md`). Designs against the SRS's requirements/NFRs (the *what*), uses the use cases to inform the runtime view and resilience/security decisions, and interviews only for the gaps; falls back gracefully to a full interview when no SRS exists, so it still works standalone. It does not *read* `rtm.md`, but at delivery it **writes back** the RTM's Design-ref column (see the RTM contract below).
-- `skills/ux-foundations/` — the "architecture of the UI." It **consumes the SRS + architecture (+ use cases)** — defaults `docs/srs.md` + `docs/architecture.md` (+ `docs/use-cases.md`) — and acquires the visual direction through one of **four user-chosen source modes** (research / extract from images / ingest a design file / connect a design tool like Figma via MCP). It produces **three outputs**: `docs/ux-foundations.md` (plan-time: personas, IA, navigation, flows, and a screen inventory whose entries carry stable **SCR IDs**), `docs/design.md` (render-time, agent-ready design system), and `docs/tokens.json` (canonical W3C DTCG tokens).
-- `skills/implementation-planning/` — the bridge from design to construction. It **consumes the full pipeline** (defaults `docs/srs.md` + `docs/use-cases.md` + `docs/architecture.md` + `docs/ux-foundations.md`) and produces an executable build plan (`docs/implementation-plan.md`). It mints a **stable `FEAT-NNN` ID** for every feature slice (sequential in definition order, never renumbered/recycled, tombstoned on removal — same discipline as FR/SCR IDs), and each slice traces the **FR IDs** it implements, the **UC IDs** it realizes, and the **SCR IDs** it touches; it skips tombstoned requirements/screens, verifies **Must-requirement coverage**, and at delivery **writes back** the RTM's Plan-ref column (keyed by FEAT ID). Those FEAT IDs are the join key the four loop skills and the RTM reference.
-- `skills/project-scaffolding/` — the first skill whose output is a **running system, not a document**. It **consumes the architecture (primary) + implementation-plan + ux-foundations trio (`ux-foundations.md`/`design.md`/`tokens.json`) + SRS (light)**, runs each ecosystem's **official project generator**, wires the **walking skeleton** end-to-end (UI shell with tokens.json → API → domain stub → local DB), stands up the engineering foundations, and **verifies empirically by building and running the skeleton test**. Output: a real repo (monorepo by default) plus an agent-instructions file and `docs/scaffold-notes.md`. **Deploy-ready, not deployed** — the deploy itself belongs to `initial-deployment` — and it does **not** write to the RTM. Checkpoints/resumes; never regenerates over a partial scaffold.
-- `skills/initial-deployment/` — the **last mile scaffolding stopped short of**: from deploy-ready to *running in the cloud*. It **consumes the architecture (deployment view + ADRs — the target platform/topology) + the repo's deployment artifacts + `docs/scaffold-notes.md` + the plan's walking-skeleton done-when + acceptance reports' pending-environment NFRs + the SRS (light: residency/availability/compliance NFRs)** and executes a ten-phase run: confirm the deployment plan, preflight credentials, provision, make secrets real, extend CI to CD, deploy and exercise the E2E suite live, fold in the **minimum operations floor**, measure pending-environment NFRs, verify, deliver. Output: the **running system** plus `docs/deployment-notes.md` (a project-owned record: resources, URLs, deploy/rollback commands, secret *locations* — never values), plus **one narrow write into `docs/scaffold-notes.md`** — closing in place the pending marker scaffolding left for exactly this run, the only foreign artifact it touches. Same character as scaffolding — cloud-agnostic process, cloud-specific run, CLI specifics verified against **live provider docs**, checkpointed in `docs/.deployment-progress.md`, never blindly re-provisioning — plus two gates scaffolding didn't need: **money** (one explicit confirmation before anything billable is created) and **credentials** (a blocking ask; it never handles a secret value). **Writes no RTM column.** Recommended right after scaffolding (deploy the skeleton, per the walking-skeleton philosophy); fully supported later, when Phase 8 is worth more.
-- `skills/detailed-design/` — a **loop skill**, run **once per feature** as each vertical slice reaches the front of the plan; the **system/backend half** of the feature's low-level design. It **consumes the plan + SRS + use cases + architecture + the live codebase** (a mandatory read, not optional) and produces, per feature under **`docs/features/FEAT-NNN-<slug>/`**, a `technical-design.md` (API contracts, physical schema migrations, component design, acceptance criteria) and an ordered `tasks.md`. It designs the *how* (the *what* is fixed upstream by FR/UC ID), **escalates** any new entity or boundary change to an architecture amendment rather than inventing it locally, and **appends** the feature's design ref to the RTM's Design-ref column. Hands contracts to `ui-design`; `tasks.md` is the handoff to `feature-implementation`.
-- `skills/ui-design/` — the **presentation half** of the feature's low-level design, `detailed-design`'s loop sibling (sequential, not parallel: in per-feature mode it **consumes that feature's `technical-design.md`** because screens bind to its contracts). It runs in **three modes** — *anchor* (2–3 key screens right after ux-foundations, to validate the design system composes before features build on it), *per-feature* (the loop — design a feature's SCR screens), and *re-verification* (after a `design.md` amendment). Its defining trait is being an **adapter**: it resolves a strategy **per screen** — pick up screens that already exist in a connected design tool (Figma, Claude Design, etc. via MCP), else fall back to code-native specs or generation — and absorbs all tool variance behind **one uniform output**, `docs/design-manifest.json` (SCR-keyed, single-writer). Also writes `docs/features/FEAT-NNN-<slug>/ui-design.md` (or `docs/anchor-screens.md` in anchor mode), appends to the RTM Design-ref column, and **escalates off-system screens to a ux-foundations amendment — never forks `design.md`**.
-- `skills/feature-implementation/` — the **construction step** of the loop, run once per feature after both design halves exist: **tasks.md is the program; this skill is the interpreter.** It executes the feature's tasks in order — one task per iteration, each done-when **demonstrated by actually running it**, one commit per task (`FEAT-NNN T<k>: …`) — against `technical-design.md`, `ui-design.md` + the manifest, the design system, and the live codebase, ending **developer-done** (every task checked, including the final verification task). Seven disciplines, each killing a named agentic failure mode: improvisation-is-escalation (divergent reality routes to the design's amendment path, never a quiet redesign), fresh-context safety (disk is the memory; checkbox state = position), done-when-demonstrated + the **anti-fake-green rule** (tests never weakened/skipped/edited to pass), **bounded fix-loops** (default 3 attempts, then an honest WIP stop), scope discipline (this feature only), convention conformance (inherited frameworks; tokens, never raw values), and git-as-checkpoint (WIP commits explicitly marked). Writes **no RTM column**.
-- `skills/acceptance-verification/` — the **independent auditor that closes the loop**, run once per feature after `feature-implementation` declares it *developer-done* (every `tasks.md` box checked). Its **fresh-eyes rule**: every check is re-derived from the authoritative documents (technical-design §6 criteria, verbatim SRS/UC statements, the manifest) — **never from tasks.md checkboxes, delivery summaries, or claimed greens** (those are the artifacts under audit, not evidence). It audits the tests criterion by criterion (correcting weak tests — the one artifact class it may change; **it never fixes production code**), re-runs all suites fresh, verifies FRs/NFRs directly beyond the tests, and delivers one of **three verdicts** — *accepted* / *rework* (routed back to `feature-implementation`) / *design defect* (routed to detailed-design's amendment path) — written to `docs/features/FEAT-NNN-<slug>/acceptance-report.md`. On acceptance it **appends the RTM's Test-ref column**, completing the requirement lifecycle (Plan ref → Design ref → Test ref).
-- `skills/sdlc-orchestrator/` — the **thin loop driver and lifecycle router** that sits over the four loop skills; it adds only what no single stage owns (the *global* position, the invocation of the right next stage, the routing of outcomes) and **does none of the stages' work**. Three principles: **compute, never store** (global position derived fresh from the plan sequence joined to each feature's folder state — `technical-design.md`→designed, `ui-design.md`→ui-designed, `tasks.md` fully checked→developer-done, accepted `acceptance-report.md`→verified; no orchestrator state file); **skills stay sovereign** (it invokes stages and reads outcomes but never edits `tasks.md`, writes an RTM column, or resolves an escalation — human-judgment points pause the loop and surface); **every stop is a resumable state**. It drives the **per-feature cycle** (`detailed-design` → `ui-design` → `feature-implementation` → `acceptance-verification` → next) at a user-chosen scope (one stage / one feature cycle / run-until-blocked) and **routes outcomes** (rework→implementation with a bounded round count; design-defect/escalation/blocked→pause and surface; plan-complete→close). It also owns two **lifecycle routes**: a **change request** walks the amendment chain in order (requirements-engineering → architecture/ux impact → implementation-planning) so a new `FEAT` is minted with its FR/UC/SCR IDs before the loop reaches it; a **bug** becomes a `docs/defects.md` ledger entry (`DEF-NNN`), a **failing test first**, a scoped fix under feature-implementation's disciplines, then re-verification. It owns exactly one artifact — the defect ledger `docs/defects.md` — and **writes no pipeline document or RTM column**; deployment is out of scope (it points at `initial-deployment` when the plan completes undeployed).
+Consequences for how you work here:
 
-The hand-offs are real couplings, not loose suggestions:
-- `requirements-engineering` emits **two primary documents**, not one: `docs/srs.md` (the requirement source of truth — NFRs, personas/user classes, constraints) **and** `docs/use-cases.md` (detailed use-case specs + a Mermaid use-case diagram, traced back to the FRs), plus the `docs/rtm.md` traceability matrix linking them. The SRS is the requirement spine; the use-case document carries the actor/flow detail that maps naturally onto ux-foundations' key flows and implementation-planning's vertical slices.
-- `software-architecture` now **ingests both `docs/srs.md` and `docs/use-cases.md`**: it designs against the SRS requirements/NFRs, draws its runtime scenarios from the significant use cases, and mines the use cases' exception/alternate flows for resilience needs and their actors for trust boundaries. Traceability is **source-gated** — it cites SRS requirement IDs and use-case IDs *only when those documents exist*, and states drivers in plain prose (never a fabricated ID) when they don't.
-- `ux-foundations` reads the **SRS + architecture + use cases**: surfaces and actors from the architecture's containers/context, **personas from SRS §2.3** (don't re-elicit), the **accessibility bar from the SRS usability/accessibility NFRs** (non-negotiable — it overrides any ingested design), and key flows citing the UC IDs they realize. Same **source-gated** traceability rule as the architecture skill.
-- `implementation-planning` slices vertically by joining the architecture's building blocks/endpoints with the ux-foundations' per-surface **screen inventory (SCR IDs)** and the SRS's **FR IDs / MoSCoW priorities** — it needs all of these to form a slice and to run its **Must-coverage check** (every Must-requirement lands in a slice or is consciously deferred).
-- `project-scaffolding` turns `architecture.md` + `implementation-plan.md` + the ux-foundations trio into a **running walking-skeleton repo**; it wires `tokens.json` into the UI shell and references `design.md` from the generated agent-instructions file, so the design system carries into every future coding session.
-- `initial-deployment` picks up **exactly where scaffolding stopped**, and the coupling is artifact-level, not advisory: the deployment configs, environment parameterization, secret *placeholders*, and CI that scaffolding *wrote but never executed* are what this skill executes, and `docs/scaffold-notes.md` (versions, exact commands, what's pending) is its map. Two pending items are closed here by name — the plan's **walking-skeleton done-when's deployed half** (scaffolding demonstrated the local half and recorded the rest as *pending initial deployment*; this skill closes that marker **in place in `scaffold-notes.md`**, with date and evidence — a deliberate, single-purpose exception to "never write another skill's artifact," because the marker was written to be closed by exactly this run, and nothing else in that file is touched) and the acceptance reports' **pending-environment NFRs** (measured against the real environment, results in deployment-notes; the *formal* verdict and RTM update stay `acceptance-verification`'s jurisdiction — re-run it). The deployment view/ADRs are read the way scaffolding reads the stack: as an input, with gaps flagged as candidate architecture amendments and topology-changing deviations escalated, never decided locally.
-- **The testing chain runs architecture → scaffolding → feature-implementation → acceptance-verification, decided once at the top.** The architecture's cross-cutting **Testing** entry is the single decision point: strategy, the **critical flows covered by E2E** (UC IDs when use cases exist), the **frameworks** (unit/integration runner per stack unit + the E2E framework), and the **coverage stance** — *none / report-only / enforced threshold N%* with its scope (changed-code vs whole-repo) and driver. `project-scaffolding` **realizes exactly that** (installs the named runners, stands up the E2E workspace, and wires the coverage step per the stance: gating job / report-only / nothing — never "helpfully" adding coverage tooling; silent architecture → ecosystem default runner with **no** coverage tooling, noted as a candidate amendment). `detailed-design` mints the flow-aware E2E-extension task from the same entry; `feature-implementation` **inherits** the frameworks (never introduces a runner) and treats the coverage gate as part of developer-done, with the **anti-fake-green rule extended to coverage config** — lowering the threshold, narrowing the scope, or adding exclusion/ignore patterns are named forbidden moves, exactly like loosening an assertion; a genuinely wrong threshold escalates toward the architecture's stance. `acceptance-verification` closes it by **diffing the coverage config** over the feature's commit range in its anti-fake-green review and **re-running the gate itself** as CI runs it (it audits the config; the number comes from the re-run, not an independent re-measurement). Change the stance vocabulary in one of these and all four move together.
-- `detailed-design` is the entry to the **per-feature construction loop**: it picks the next undesigned feature (**computed, not stored** — plan build-order minus the `FEAT-*` folders already in `docs/features/`; the plan is never written with status, so it stays implementation-planning's structural source of truth), and designs it against **the live, evolved codebase as much as the documents** (reality wins where they diverge). Its `technical-design.md` contracts are the input to `ui-design`; its `tasks.md` is the input to `feature-implementation`.
-- `ui-design` runs **after** `detailed-design` in the loop (per-feature mode binds screens to that feature's `technical-design.md` contracts), and picks the next feature by the **same deterministic rule** — walk the plan's build sequence, take the first feature whose folder has `technical-design.md` but no `ui-design.md` (a menu would invite off-sequence violations). It reads the `design.md` **`design_provenance` block** (mode + fidelity) that ux-foundations now writes in every mode to drive its anchor recommendation, and its **manifest** (`docs/design-manifest.json`) is the sole registry of what's designed — no downstream skill ever touches a design tool's API. Off-system screens **escalate to a ux-foundations amendment** (the presentation analog of detailed-design's schema escalation).
-- `feature-implementation` runs **after both design halves**: it picks the next feature by the loop's deterministic discipline (walk the plan's build sequence; the first feature whose `tasks.md` exists and has unchecked tasks; announce, never a menu; missing design docs → stop and say so, never improvise a design) and executes one task at a time with a commit per task. Everything is **inherited, not chosen**: test frameworks from the scaffolded harness, conventions from technical-design §2's survey, screen sources from the manifest (tool-backed screens realized from their locators, code-native from their specs + a bounded screenshot loop), the fix-attempt bound from the agent-instructions file (default 3). Divergent reality has two paths, never a third: small and design-consistent → implement the intent and record; contract/schema/criterion/screen-spec changes → escalate to the owning skill's amendment path. Ends at *developer-done* — the handoff `acceptance-verification` picks up.
-- `acceptance-verification` closes the loop **after `feature-implementation`**: it picks the next feature by the same deterministic discipline (walk the plan's build sequence; the first feature that is *developer-done* — tasks.md fully checked — but has no accepted `acceptance-report.md` is next; announce, never a menu), refuses features that aren't developer-done, and treats re-verification after rework or an amendment as a normal full run (the report gains a new dated verdict section; prior verdicts preserved). Verdicts **route, never fix**: rework → feature-implementation; design defects → detailed-design's amendment path (which may escalate further per its own rules — schema to architecture, screens to the design system).
-- `sdlc-orchestrator` is the **coupling between the four loop skills, not a stage in them**: it computes the same deterministic position each loop skill would (it inherits their next-feature rule, at global scope) and simply invokes them in sequence, reading each stage's on-disk artifacts as the input to the next rather than passing summaries. Its couplings are therefore the loop skills' own contracts — the folder-state → stage mapping, the verdict routing (`acceptance-verification`'s rework/design-defect), the escalation paths (`detailed-design` schema → architecture, `ui-design` screens → ux-foundations), and the amendment chain the upstream skills already own. It **adds** two artifacts to the shared vocabulary: the `docs/defects.md` ledger (`DEF-NNN` IDs, its exclusively-owned file) and the lifecycle routes that re-enter work through the top of its chain (requirements for changes; a failing test + owning feature for bugs). It **writes no RTM column** — so if you touch the column-ownership contract, the orchestrator is not a writer to add.
-- **The RTM (`docs/rtm.md`) is a shared multi-writer ledger with exclusive column ownership** — the pipeline's spine of traceability. `requirements-engineering` owns the rows + all requirement columns and initializes Design/Plan/Test refs as `_TBD_`; **Design ref** is written by `software-architecture` (ADR refs, per a layer rule) and later appended to by `detailed-design` (per-feature `technical-design.md` refs) and `ui-design` (per-feature `ui-design.md` refs); `implementation-planning` fills **Plan ref** (the scheduling slice, keyed by FEAT ID); **Test ref** is written by `acceptance-verification` — the feature's acceptance-report ref, appended **on acceptance only**, with a permanent `(partial)` marker when the feature implements the FR partially (**full verification is computed** — every feature in the FR's Plan ref has an accepted report in Test ref — never stored in the cell); `project-scaffolding` writes nothing. Every writer **appends, never overwrites**, touches only its own column at its own delivery time, and **skips silently when there's no RTM** (standalone runs). See `requirements-engineering/references/rtm-guide.md` for the contract — respect it when editing any downstream skill's delivery phase.
+- **"Correctness" means the instructions are unambiguous, well-scoped, and trigger
+  reliably** — not that something compiles. You cannot run these skills to test
+  them; review by reading.
+- **Every token costs.** `SKILL.md` is loaded on every invocation. Prefer deleting
+  a sentence to adding one. Depth goes in `references/`, read on demand.
+- **The twelve skills are coupled.** Changing what one emits ripples into how the
+  next ingests it. §4 lists the couplings; check them before editing any skill.
+- **Never write project-specific lessons back into a skill folder.** Skills emit
+  project-owned artifacts (`scaffold-notes.md`, `deployment-notes.md`, …); that's
+  where run-specific knowledge lives.
 
-So changes to what an upstream skill emits (requirement IDs/vocabulary, SCR IDs, FEAT IDs, surface naming, container vocabulary, the screen-inventory shape, RTM column ownership) can ripple downstream into how the next skill ingests it. Keep the vocabulary consistent across the eleven when editing any one.
+## 2. Layout and install-path invariants
 
-## Skill anatomy and conventions
-
-The `skills/` directory location matters: it's the flat layout (`skills/<name>/SKILL.md`) the [`skills` CLI](https://www.skills.sh) discovers, which is what makes `npx skills add <repo> --skill <name>` work. Keep skills under `skills/` — moving one to the repo root breaks installability.
-
-A skill directory follows this shape:
-
-```
+```text
 skills/<skill-name>/
-├── SKILL.md            # required: frontmatter + the workflow the agent follows
-└── references/         # optional: deep-dive guides SKILL.md tells the agent to read on demand
+├── SKILL.md            # required: frontmatter + the workflow
+└── references/         # optional: guides SKILL.md tells the agent to read on demand
 ```
 
-- **`SKILL.md` frontmatter** has two keys: `name` (must match the directory name) and `description`. The `description` is the *only* thing the agent sees when deciding whether to invoke the skill, so it carries the trigger phrases and the "use this when…" intent. Treat it as load-bearing, not boilerplate — edits here change when the skill fires.
-- **Progressive disclosure is the core pattern.** `SKILL.md` stays a lean workflow (phases, rules) and explicitly instructs the agent to *read a specific `references/*.md` file* at the moment it's needed, rather than inlining all the detail. When adding depth, add or extend a reference file and point to it from the relevant phase — don't bloat `SKILL.md`.
-- **The README's "What's inside" tree and Skills table must stay in sync** with the actual files. Adding/removing a reference file or a skill means updating `README.md`.
-
-## How people install these skills
-
-Two supported paths, both documented in `README.md` — keep both working when you change layout:
-- **`skills` CLI (primary):** `npx skills add https://github.com/zeeshanhanif/agent-skills --skill <name>`. This resolves against the **pushed GitHub repo**, not the local tree, so layout/frontmatter changes only take effect for users after a push. It depends entirely on the `skills/<name>/SKILL.md` location and the frontmatter `name` matching the `--skill` argument.
-- **Manual copy (Claude Code):** users copy `skills/<name>/` into `~/.claude/skills/` (personal) or `.claude/skills/` (project). The skill must land at `~/.claude/skills/<name>/SKILL.md` — one level too deep silently fails to load.
-
-Any rename of a skill directory or its frontmatter `name`, or a change to the `skills/` location, changes the install command — update the README's Install section and the command examples in lockstep.
-
-## When editing the `requirements-engineering` skill
-
-Its two governing principles (stated in `SKILL.md`): **exhaustive enumeration, not transcription** — when a capability area comes up, propose the full set of standard sub-requirements (auth → sign-up, sign-in, verification, forgot/reset, logout, session expiry, lockout, rate limiting…) and have the user confirm/extend/trim, rather than recording only what they mention — and **structured and traditional** — a formal SRS in the ISO/IEC/IEEE 29148 (IEEE 830) lineage with numbered, uniquely-identified, testable requirements, *not* an agile backlog/user stories. Epic/feature slicing is deliberately deferred downstream to `implementation-planning`; this skill owns the problem space.
-
-Two things make this skill structurally different from the others:
-- **It checkpoints and resumes.** A full requirements interview is long, so it writes finalized areas straight into `docs/srs.md` and tracks progress in `docs/.requirements-progress.md` (a working file, not a deliverable). Preserve this if you touch the phases. (Output is markdown-only — three files, `srs.md` / `use-cases.md` / `rtm.md`; Word generation was removed to drop the Pandoc/python-docx dependency, so don't reintroduce a docx phase.)
-- **It edits its own output after finalization (amendment mode).** It's not a one-shot generator — a finalized SRS can be changed, so the skill is both author and maintainer of the spec. This is what the next bullet's mode detection and Phase A exist for.
-
-**FR statements carry a once-per-SRS syntax choice: EARS or free-form "shall".** Asked at the *end of Phase 1, before the first FR is minted, and never re-asked* — recorded in the SRS header (`Requirement syntax: EARS | shall`) and the tracker header, and binding on every later amendment (switching an existing SRS's syntax is a deliberate, versioned user decision, not something the skill re-prompts). Default to EARS when the user has no preference. The choice governs **functional requirements only** — NFRs always keep their measurable metric/target/condition form. Resume and amendment sessions read the recorded syntax from disk rather than re-deciding. Both modes run the **unwanted-behavior pass** (error/failure counterparts become their own IDs — `If… then…` in EARS mode, "shall" otherwise); this is the enumeration discipline applied to error handling, so preserve it in either mode. See `ears-guide.md` for the pattern set and `checkpointing.md`/`srs-template.md` for where the choice is recorded.
-
-**Phase 0 is three-way mode detection, not just a resume check** — keep this intact if you touch the phases. From disk state plus the user's plain-language intent (no flag), it picks **fresh** (no SRS/tracker), **resume** (tracker has pending areas), or **amendment** (a *finalized* SRS exists and the user wants to change requirements). Two firm rules baked in: **resume beats amend** (finish an interrupted interview before taking new change requests), and **confirm-before-acting** when an SRS exists and intent is ambiguous — the expensive failure is clobbering or duplicating a finalized SRS. Finalization is recorded in the tracker (Phase 7); that flag is what later distinguishes amendment from resume.
-
-**Phase A (amendment) has one cardinal rule: requirement IDs are immutable and never recycled** — everything downstream references them. Adds take the next free ID, modifies keep the ID, and removals are **tombstoned** (`Deprecated`/`Removed`, row kept) rather than deleted/renumbered. Every amendment bumps the SRS version + revision-history entry, propagates to the affected use cases and the RTM, and emits a **cross-skill impact note** naming which downstream docs referenced the changed IDs. That impact note matters because the skill can't edit `architecture.md`/`ux-foundations.md`/`implementation-plan.md`/the scaffolded repo itself — it flags them for review/re-run (the RTM's downstream refs, kept even on tombstoned rows, are what make those dangling references visible).
-
-The references support the SKILL's phases (more references than the other skills — keep them mutually consistent when changing one):
-- `elicitation-guide.md` — the area-by-area functional interview (Phase 2).
-- `requirement-catalog.md` — the enumeration engine: standard FR sub-requirements per area (incl. commonly-forgotten areas) and the ISO 25010-organized NFR catalog for **measurable** non-functional requirements (Phases 2–3).
-- `ears-guide.md` — the EARS functional-requirement syntax: the five sentence patterns (ubiquitous / event-driven / state-driven / optional-feature / unwanted-behavior), pattern-selection order, and how EARS interacts with the existing one-requirement-per-statement/testability/amendment rules. Governs FR statements **only when the SRS header records `Requirement syntax: EARS`**; NFRs always keep their metric/target form (Phases 1–2, and amendments). Keep it consistent with `elicitation-guide.md`'s unwanted-behavior pass and `srs-template.md`'s example table.
-- `use-case-guide.md` — deriving/specifying use cases + the Mermaid use-case diagram (Phase 5).
-- `rtm-guide.md` — assembling the traceability matrix from the stable requirement IDs; carries a Status column so tombstoned requirements stay traceable (Phase 6). Also defines the **Test-ref contract** `acceptance-verification` writes against: `(partial)` markers are permanent descriptions of a report's scope (never edited or upgraded), and full verification is **computed** from the Plan ref ∩ Test ref intersection, never stored in the cell — keep the two files consistent when changing either.
-- `srs-template.md` — IEEE 29148-lineage SRS structure (the output spine); includes a Revision History section and per-requirement Status/Finalized state.
-- `checkpointing.md` — incremental-save/resume **and** the three-mode detection + `FINALIZED` status logic (Phase 0).
-- `change-management.md` — the amendment protocol: ID-immutability cardinal rule, add/modify/remove handling, propagation, cross-skill impact note (Phase A).
-
-## When editing the `software-architecture` skill
-
-Its governing principle (stated in `SKILL.md`): **architecture is driven by quality attributes and constraints, not by technology** — the workflow enforces *understand → decide → document*, and every tech choice must trace back to a stated requirement. Keep edits aligned with this; don't add guidance that jumps to a stack before eliciting needs.
-
-**It consumes the requirements artifacts (Input section + Phase 1).** Two inputs, by role: **SRS (primary)** — default `docs/srs.md`; when present it's the source of *what*, and Phase 1 becomes *ingest → play back the drivers (top NFRs by ID, constraints, capability areas) → interview only the gaps* (tech/stack preferences, lock-in tolerance, team skills, access patterns, deployment target), not a full re-interview. **Use cases (secondary)** — default `docs/use-cases.md`; when present they inform the **runtime view** (each significant use case → a runtime scenario / sequence diagram, cited by UC ID) and the **resilience/security** decisions (exception/alternate flows reveal failure-handling; actor→use-case mapping reveals trust boundaries). The **RTM is deliberately not consumed** (it only re-indexes the other two). When no SRS exists it falls back to the full seven-round elicitation and stays fully usable standalone. The boundary: the SRS states *what*; architecture decides *how* (stack, stores, deployment) — read only *mandated* tech from the SRS constraints. Preserve this graceful fallback if you touch the phases.
-
-**Traceability is source-gated — this is the load-bearing rule, apply it everywhere.** Cite an ID only when the document that defines it is present: SRS requirement IDs when `srs.md` exists, use-case IDs when `use-cases.md` exists; when a source is absent, state the driver in plain prose and **never fabricate an ID**. This governs Phase-2 decisions (record what drives each fork), the ADR **"Requirements addressed"** field, and the document template's Introduction (top quality goals), Runtime View (UC IDs), Architecture Decisions, and Quality Requirements sections (§1 also summarizes/links `docs/srs.md` rather than restating it). Keep the gating intact when editing the templates — the common cases are both docs present (full pipeline, cite IDs) or neither (standalone, prose throughout), and the rule handles any mix.
-
-**It writes back to the RTM at delivery (Phase 5).** If `docs/rtm.md` exists, it fills the **Design-ref** column for the requirements this architecture designed — for NFR rows, the ADR(s) addressing them; for FR rows, an ADR ref *only* when that ADR's "Requirements addressed" field genuinely cites the FR (concrete per-slice design refs come later from detailed-design/ui-design). **Append into cells, never overwrite; touch no other column** (rows + requirement columns belong to requirements-engineering, Plan ref to planning, Test ref to acceptance-verification); skip silently if there's no RTM. This is the one place the skill edits a file it didn't author — respect the column-ownership contract in `rtm-guide.md`.
-
-**It is the single decision point for the whole testing chain** (Round 7 of the interview → the cross-cutting **Testing** entry): the strategy and the E2E-covered critical flows, the **frameworks** (unit/integration runner per stack unit + E2E framework, user-selected from live-researched options), **and the coverage stance** — *none / report-only / enforced threshold* with its number, scope (changed-code vs whole-repo), and driver (NFR ID, client mandate, or a deliberate team choice), recorded with the honest caveat that a percentage gate measures execution, not assertion quality. Everything downstream *realizes* this entry and never re-decides it (see the testing-chain bullet above) — so name frameworks and thresholds concretely; a vague entry becomes four skills guessing.
-
-The references form a pipeline matching the SKILL's five phases — keep them mutually consistent when changing one:
-- `elicitation-guide.md` — the interview rounds (Phase 1); now run **gap-only** when an SRS exists, full when it doesn't. Each question must be one whose answer would change the design.
-- `decision-guide.md` — how to reason through the recurring forks (Phase 2), including Round 7's testing fork (strategy → frameworks → coverage stance). Meta-rule: start as simple as requirements allow.
-- `document-template.md` — arc42-based output, with sections tagged `[essential]` vs `[scale]` for right-sizing (Phase 3); source-gated ID citations (SRS NFR IDs, use-case IDs in the Runtime View) and links `docs/srs.md` rather than restating requirements. Its cross-cutting **Testing** entry is the downstream contract (flows, frameworks, coverage stance) — keep its shape in sync with scaffolding's `skeleton-guide.md`.
-- `diagram-guide.md` — C4 model framing, rendered as inline Mermaid; **prefer plain `flowchart`/`graph` syntax over experimental Mermaid C4 syntax** for portability (Phase 3).
-- `adr-template.md` — one ADR per significant (costly-to-reverse) decision (Phase 4); its **"Requirements addressed"** field is source-gated (SRS IDs and/or use-case IDs when those docs exist, prose otherwise — never a fabricated ID).
-
-## When editing the `ux-foundations` skill
-
-Its governing principle (stated in `SKILL.md`): **one shared core, defined once, plus a per-surface layer for each interface** — a single design language (brand, tokens, accessibility, voice) spans every UI surface so the product feels like one thing, while each surface (admin portal, website, mobile app) gets its own profile because its users, navigation, and components genuinely differ. Keep edits aligned with this; don't collapse it into a single monolith or let surfaces drift into independent design systems. It stays at the **system/spec level** — it deliberately does *not* produce pixel-perfect screens or frontend component code.
-
-Three structural things to preserve when editing (all added in the design-system overhaul):
-
-- **Two input classes with opposite consumption rules.** *Pipeline documents* (SRS/architecture/use-cases in their contracted `docs/` locations) are **read silently — never ask**; consuming them is the pipeline working. The *design source* is **always asked, never assumed** — detection tells you what's *possible*, only the user says what's *wanted* (a `design.md` may be stale, images may be leftovers, they may want a fresh direction anyway). Don't collapse these into one "just detect and go" behavior.
-- **Four design source modes** (Phase 1 asks, Phase 3 acquires): **research / extract from images / ingest a design file / connect a design tool** (Figma etc. via MCP), plus folded variants (brand book → ingest; existing codebase CSS/Tailwind → extract; mandated framework like Material/shadcn → constrains the component layer). Every mode ends by **playing back a proposed direction for confirmation** — extraction/ingestion/research are approximations, never asserted. Images are only ever read from `docs/design-refs/` — never scan the wider project.
-- **Three outputs with a strict authority split** (Phase 7): `docs/tokens.json` (canonical machine-readable tokens, **W3C DTCG** format) is the single source of truth for values; `docs/design.md` (the **render-time**, agent-ready design system — its CSS block is *derived* from tokens.json) is the source of truth for anything design-system; `docs/ux-foundations.md` (the **plan-time** doc: personas, IA, flows, screen inventory) **references** design.md and never restates token values. Keep value authority in tokens.json/design.md so the three never drift.
-
-**The SRS accessibility/usability NFRs override every source mode's output** (e.g., an ingested palette that fails the contrast bar gets adjusted, with the change recorded in design.md's provenance). Preserve that override — it's non-negotiable by design.
-
-**design.md's Provenance carries a structured `design_provenance` block** — a JSON object written in **every** mode (mode + fidelity always; a `source` sub-object with tool + locator only in tool mode). It's not decoration: `ui-design` reads it to drive its anchor-screen recommendation (research/ingestion provenance → anchors more strongly suggested; tool-sourced → skip). Keep it machine-readable and written in all modes if you touch the provenance section.
-
-The references form a pipeline matching the SKILL's eight phases — keep them mutually consistent when changing one:
-- `elicitation-guide.md` — the UX interview (Phase 2): only what upstream doesn't answer (device/responsive targets, brand feel, voice, i18n); personas come from SRS §2.3, confirmed not re-elicited.
-- `source-modes.md` — the four design-source acquisition protocols (Phases 1 & 3); every mode ends in a confirmed direction, and SRS accessibility NFRs override all of them.
-- `design-tool-integrations.md` — per-tool guidance for Mode 4 (connect a design tool): a generic MCP protocol that always works standalone, refined by optional per-tool sections.
-- `design-system-guide.md` — the shared core (Phase 4): semantic role-based tokens, core component inventory with states, voice, accessibility standard cited by SRS NFR ID.
-- `surface-profile-guide.md` — the per-surface layer (Phase 5): users/jobs (from SRS user classes), IA + navigation, key flows (cite UC IDs), screen inventory with stable **SCR IDs** (the hand-off currency for implementation-planning and downstream ui-design), surface-specific components + token overrides.
-- `design-md-guide.md` — how to write the render-time `docs/design.md` (Phase 7): concrete values, component states/variants, layout/accessibility/usage rules, provenance + known gaps; reference it from CLAUDE.md so UI-building sessions inherit it.
-- `document-template.md` — the plan-time `docs/ux-foundations.md` structure (Phase 7): shared core plus one section per surface, right-sized, referencing design.md.
-- `diagram-guide.md` — sitemaps + user flows as inline Mermaid; **prefer plain `flowchart`/`graph` syntax** for portability, same reliability rationale as the architecture skill's diagram guide.
-
-Two hand-offs to preserve: the **screen inventory with its SCR IDs** (in `ux-foundations.md`) feeds implementation-planning's vertical slicing (slices trace SCR IDs) and downstream ui-design, and **design.md + tokens.json** feed every downstream UI-building session and are wired into the repo by `project-scaffolding` (the skill suggests referencing design.md from CLAUDE.md).
-
-## When editing the `implementation-planning` skill
-
-Its two governing principles (stated in `SKILL.md`): **slice vertically, never horizontally** — every unit of work cuts through UI, API, domain, and data to deliver something demonstrable, never "build all the tables" — and **make the architecture executable before complete** — build the *walking skeleton* (minimal end-to-end path that proves the system runs and deploys) first, not the easiest feature, then sequence the rest by dependency and risk. It plans the whole app's breadth but only details the first/near slices (**depth-on-demand**, not waterfall); don't add guidance that elaborates the entire backlog upfront. It **stops at the plan** — per-slice detailed design (API contracts, schemas) and ui design (per-screen) and code/scaffolding are separate downstream steps.
-
-**It consumes the full pipeline (Phase 1).** Defaults to reading all four upstream docs — `docs/srs.md` + `docs/use-cases.md` + `docs/architecture.md` + `docs/ux-foundations.md` — each degrading independently. Every slice traces the **FR IDs** it implements (from the SRS), the **UC IDs** it realizes (use cases), and the **SCR IDs** it touches (ux-foundations screen inventory); it **skips tombstoned** requirements (`Removed`/`Deprecated`) and screens so they don't spawn slices. Same **source-gated** traceability rule (cite an ID only when its document is present; never fabricate). Two delivery-phase behaviors to preserve: the **Must-coverage check** (Phase 8 / `verification.md` — every Must-priority FR lands in a slice or is consciously deferred, no silent gaps) and the **RTM Plan-ref write-back** (Phase 9 — append the scheduling slice into the Plan-ref column only, per the column-ownership contract; scheduling is not design, which is why Plan ref is its own column).
-
-The references form a pipeline matching the SKILL's nine phases — keep them mutually consistent when changing one:
-- `slicing-guide.md` — decomposition (Phase 3): epics from building blocks, thin vertical feature slices, each mapped to SCR screens + endpoints + flow and tracing FR/UC IDs.
-- `sequencing-guide.md` — walking skeleton (Phase 4) and risk/dependency ordering (Phase 5).
-- `verification.md` — the Must-requirement coverage check (Phase 8) and the RTM write-back completeness check.
-- `document-template.md` — output structure (Phase 9): the epic/feature breakdown is a **default** section, not an optional add-on; the issue-tracker export is off by default.
-- `diagram-guide.md` — dependency graph as inline Mermaid; **prefer plain `flowchart`/`graph` syntax** for portability, same reliability rationale as the other skills' diagram guides.
-
-## When editing the `project-scaffolding` skill
-
-This is the odd one out: **its output is a running repo, not a markdown document**, so "correctness" here really can be tested (the skeleton either builds and runs or it doesn't). Its three governing principles (stated in `SKILL.md`), keep them intact:
-
-- **The stack is an input, never a decision.** The architecture's ADRs already chose the technology; this skill reads the stack and refuses to relitigate it. Gaps the generators need (package manager, monorepo tool) are elicited *and flagged as candidate architecture amendments* — don't let it start making stack choices.
-- **Official generators first, manual structure second.** Every serious ecosystem ships an official initializer encoding *current* best-practice structure; the skill discovers it, **verifies name/flags against live docs (never trust memory for CLI syntax)**, runs it for real, then customizes. This is deliberate — it's what keeps the skill self-updating as frameworks change. Hand-build only where no generator exists.
-- **It owns the stack-independent layer**: walking-skeleton wiring between units, module-boundary enforcement (folders + import/lint rules), the design system wired into the UI shell (delete `tokens.json` and the shell should visibly break), pipeline conventions carried into the repo, and **empirical verification** (Phase 7 — actually build and run; never assert a green skeleton).
-
-Structural things to preserve: it **checkpoints and resumes** (`docs/.scaffold-progress.md`) and **never regenerates over a partial scaffold** (destructive); it stops at **deploy-ready, not deployed** (writes deployment config but provisions/deploys nothing — `initial-deployment` executes exactly those artifacts, so what scaffolding writes here is that skill's input, not a placeholder to hand-wave); it emits `docs/scaffold-notes.md` (generators + versions + flags actually used, deviations, what's stubbed) as a **project-owned** record — never write lessons back into the skill folder — including the *pending initial deployment* marker on the skeleton done-when's deployed half, which is the one line another skill (`initial-deployment`) later closes in place; and it **does not touch the RTM** (scaffolding realizes containers, not requirements). Source-gated as everywhere: scaffold decisions cite ADR/container names when the docs exist, prose otherwise.
-
-The references support the SKILL's nine phases (0–8) — keep them mutually consistent when changing one:
-- `checkpointing.md` — the resume protocol + progress tracker (Phase 0); never regenerate over existing work.
-- `scaffolding-guide.md` — tooling discovery (Phase 3: find/verify the official generator) and structure (Phase 4: monorepo layout, module boundaries as lint/import rules, carrying `docs/` in).
-- `skeleton-guide.md` — wiring the walking skeleton (Phase 5) and the engineering foundations (Phase 6), incl. realizing the architecture's named test frameworks and its coverage stance in CI (gate / report-only / nothing) — executed, never re-decided.
-- `verification.md` — empirical verification (Phase 7): clean install, every unit builds, skeleton test passes locally, tokens render, agent-instructions paths resolve, coverage configuration matches the architecture's stance.
-
-## When editing the `initial-deployment` skill
-
-Scaffolding's twin, one step later: like it, **the output is a running system, not a document**, so "correctness" is empirical (the environment either serves traffic or it doesn't). It is the only skill that spends the user's money and touches their cloud account — that, not document consistency, is what its rules are protecting. Its three principles (stated in `SKILL.md`), keep them intact:
-
-- **The target is an input, never a decision.** The architecture's ADRs and deployment view chose the platform and topology; this skill executes them. Gaps (an unstated region, an unnamed tier) are elicited *and flagged as candidate architecture amendments*; deviations are conform-or-escalate — trivial realization details get done and recorded, topology-changing ones go back through the architecture amendment path. **The process is cloud-agnostic; the run is cloud-specific** — CLI names, flags, and console steps are **verified against live provider docs at run time, never recited from memory** (the same live-reality discipline as scaffolding's generators, and more load-bearing: provider CLIs drift faster).
-- **Money and credentials get gates.** The **deployment plan** (resources, environments, rough cost class) is played back for **one explicit confirmation** — *nothing billable exists before that nod*. Credentials stay the user's: the skill preflights that the provider CLI is authenticated and **blocks with instructions when it isn't**, and never asks for, stores, or writes a credential or secret **value** anywhere. Configs reference secret stores; values enter them out-of-band through the provider's own mechanism, user-driven, with a non-secret canary proving the wiring. Don't add a "convenience" path around either gate.
-- **Deployed means demonstrated.** The skeleton path exercised against the deployed environment, CD proven by a real observed pipeline run, restore actually performed once, alerting fired once to the human. Claims are exhibits, observations are evidence — the auditor's posture, applied to infrastructure.
-
-Structural things to preserve:
-- **It checkpoints and resumes** (`docs/.deployment-progress.md`) and **never blindly re-provisions** — partial state is verified against *the provider*, not just the tracker, and provisioning the tracker can't account for stops the run (this skill never assumes ownership of infrastructure it can't explain). The destructive-idempotency concern is scaffolding's, sharpened: re-running costs real resources.
-- **Operations are folded in, not deferred** (Phase 7's floor: uptime check, error alerting, reachable logs, backup **plus a performed restore**, TLS/domain). Don't let this drift into an optional add-on or expand into full day-2 operations.
-- **It writes no RTM column** and does not update acceptance reports: pending-environment NFR measurements land in `docs/deployment-notes.md`, and the skill *recommends re-running `acceptance-verification`* for the formal verdict. Jurisdiction over verification stays with the auditor — keep that boundary if you extend Phase 8.
-- **`docs/deployment-notes.md` is project-owned** (resources with provider identifiers, environment URLs, exact deploy **and rollback** commands, secret store *locations*, costs, deviations) — the same never-write-lessons-back-into-the-skill rule as scaffold-notes, plus the absolute one: **no secret value ever appears in it**. Artifact names follow the skill name (`deployment-notes.md`, `.deployment-progress.md`) — rename one and rename it in all four files plus these docs.
-- **Exactly one foreign write, and it's scoped to a marker**: closing scaffold-notes' *pending initial deployment* line in place (Output 4), with date and evidence. Everything else about the run lives in deployment-notes, and the scope boundary says so explicitly — don't let this widen into editing other skills' documents, which is what the rest of the pipeline's single-writer discipline depends on.
-- **When to run is a recommendation with a stated trade-off**, not a gate: early (deploy the skeleton) is the walking-skeleton philosophy; later is fully supported and makes Phase 8 richer, at the cost of a first push that ships N features at once. Keep both paths honest rather than mandating either.
-
-The references support the SKILL's ten phases (0–9) — keep them mutually consistent when changing one:
-- `deployment-guide.md` — Phases 1–6: extracting the deployment contract from the architecture + repo artifacts, the deployment-plan playback, provisioning order (foundation → stores → services), secrets, CD, and checkpointing.
-- `operations-minimum.md` — Phase 7's day-1 floor, each item **verified by demonstration** (a test-fired alert, a performed restore).
-- `verification.md` — Phase 9: provisioned reality matches the confirmed plan, the pipeline ships, the live E2E exercise, operations demonstrated — everything observed in this run, nothing asserted.
-
-## When editing the `detailed-design` skill
-
-This is a **loop skill** (the system/backend half of the feature's low-level design; `ui-design` is the presentation half; `feature-implementation` builds it; `acceptance-verification` closes the loop) — a different shape from the five one-pass skills above. It runs **once per feature**, in a fresh session, for the life of the project, so its design assumptions are about *repeat invocation against a moving codebase*, not a single greenfield pass. Its three governing principles (stated in `SKILL.md`), keep them intact:
-
-- **The *what* is fixed upstream; this skill designs the *how*.** The FR/UC IDs a feature implements were set in requirements and scoped by the plan; detailed-design never invents or reinterprets requirements — inheritance-by-ID is what keeps per-feature design consistent across a long project. New entities / consistency-boundary changes **escalate to an architecture amendment**, never designed locally.
-- **The live codebase is an input, not an obstacle** — a *mandatory* read (Phase 2). Feature N is designed against code that has evolved past the skeleton; a design that conflicts with existing contracts/schema/conventions is wrong even if it matches the documents. **Reality wins over documents** where they diverge (and the divergence is noted).
-- **Depth here, and only here.** This is where the pipeline's depth-on-demand promise is kept: full concrete detail (contracts, columns, components, tasks) for *this* feature and nothing for features that haven't reached the front.
-
-Structural things to preserve:
-- **Output is keyed on the stable `FEAT-NNN` ID** from the plan (immutable, so re-sequencing the plan never invalidates folder names), under `docs/features/FEAT-NNN-<slug>/`. The technical design is named **`technical-design.md`** (not `design.md`) to avoid colliding with the design *system* at `docs/design.md`; its `ui-design` sibling (`ui-design.md`) sits in the same folder.
-- **Execution status lives in the artifacts, never in the plan.** "Which feature is next" is *computed* (plan build-order minus existing `FEAT-*` folders); a folder with a verified `technical-design.md` = designed, `tasks.md` checkboxes = build progress. Don't add a status field to the plan — that would break implementation-planning's ownership of it. Progress lines the skill reports are live-counted, never stored.
-- **RTM write-back is Design-ref only, append-only** (per feature, one design ref appended to each FR the feature implements), matching the column-ownership contract.
-
-The references support the SKILL's six phases — keep them mutually consistent when changing one:
-- `design-guide.md` — the technical design itself (Phase 3): API contracts, physical schema migrations (inside the architecture's conceptual model, else escalate), component design, acceptance criteria from FR/UC, feature-local decision notes.
-- `tasks-guide.md` — decomposing the design into an ordered, implementable, individually-verifiable `tasks.md` (Phase 4), each task pointing at the design sections + acceptance criteria it serves. Includes the **computed, flow-aware E2E obligation**: intersect the feature's UC IDs with the critical flows named in the architecture's cross-cutting Testing entry; non-empty → an explicit E2E-extension task before the final verification task (extend coverage to what the flow can now demonstrably do, not full-flow tests against stubs; skip legitimately when the architecture is silent on testing). Also **classifies each done-when's kind at design time** so `feature-implementation` executes it rather than improvising: **behavioral** tasks (logic, contract semantics, validation) get test-artifact done-whens; **structural/realization** tasks (schema objects, wiring, screen realization, config) get demonstration done-whens — no ceremony tests asserting mere existence. Verification is universal; test artifacts attach to behavior. Keep this consistent with `feature-implementation`'s execution-guide.
-- `verification.md` — the self-check (Phase 5): every FR covered by acceptance criteria and tasks, every cited ID resolves, schema stays in-model or an escalation is filed, contracts don't collide with existing code, and the E2E obligation is honored when owed.
-
-## When editing the `ui-design` skill
-
-The **presentation half** of the feature's low-level design and `detailed-design`'s loop sibling — but *sequential*, not parallel: in per-feature mode it consumes that feature's `technical-design.md` (screens bind to its contracts), which is why detailed-design runs first. Only **anchor mode** precedes features. Its three governing principles (stated in `SKILL.md`), keep them intact:
-
-- **Strategy is resolved per screen, not per project.** The manifest lookup by SCR ID is always the first move; a project with a partial design file is "register" for the screens that exist and its fallback policy (code-native spec by default, or generate) for the rest. Don't collapse this into a single project-wide strategy.
-- **Screens conform to the design system or escalate — never fork it.** `docs/design.md` + `tokens.json` are the authority; an off-system color/component/pattern is either corrected or the *system* is amended through **ux-foundations' amendment path** (the presentation analog of detailed-design's schema escalation). Local work never silently mutates upstream authority.
-- **The manifest is the only registry, and this skill is its single writer.** With per-screen routing no design tool ever holds the complete picture — only `docs/design-manifest.json` does. This is the load-bearing design: it's what lets the skill be an **adapter** that absorbs all design-tool variance (Figma, Claude Design, etc. via MCP) so **no downstream skill ever learns what a Figma node is** — implementation reads the manifest, never a tool API.
-
-Structural things to preserve:
-- **Three modes** (Phase 0): *anchor* (2–3 compositionally-demanding screens right after ux-foundations, to prove the system composes — recommended-not-mandatory, on a gradient driven by design.md's `design_provenance`), *per-feature* (the loop), *re-verification* (after a design.md amendment, re-check affected manifest entries). Anchor mode writes `docs/anchor-screens.md` (no feature folder yet, opens with the *does-the-system-compose?* verdict); per-feature writes `docs/features/FEAT-NNN-<slug>/ui-design.md`.
-- **Deterministic next-feature selection** matches detailed-design: walk the plan build order, take the first feature whose folder has `technical-design.md` but no `ui-design.md`; announce the resolution; **never present a menu** (it invites off-sequence violations of the plan's dependency ordering). Explicit user naming is the only off-sequence path.
-- **Tool-agnostic + live-reality rule:** design tools are interchangeable engines behind two capabilities (enumerate/export existing designs; generate from a spec). When a tool is wanted but none is connected, **say so plainly and verify the connection steps against live docs** — never recite remembered commands, never silently downgrade to code-native (same live-reality discipline as scaffolding's generators).
-- **RTM write-back is Design-ref only, append-only** (the feature's `ui-design.md` ref appended to the FRs whose screens it designs) — same column-ownership contract as detailed-design.
-- **Document heading formats in `document-templates.md` are load-bearing** — manifest source locators anchor on them; don't restyle headings casually.
-
-The references support the SKILL's phases — keep them mutually consistent when changing one:
-- `strategy-guide.md` — per-screen strategy resolution (Phase 2) and the three strategy protocols (Phase 3): register / generate / code-native spec.
-- `design-tool-integrations.md` — design tools treated **capability-first** (enumerate vs. generate), interchangeable behind the two capabilities; generic protocol that always works, per-tool refinements optional.
-- `manifest-guide.md` — the `docs/design-manifest.json` schema (the single SCR-keyed registry): strategy, source locator, states coverage, contract bindings, conformance, status.
-- `document-templates.md` — `ui-design.md` and `anchor-screens.md` structures with the load-bearing headings.
-- `verification.md` — the self-check (Phase 5): one manifest entry per screen, sources resolve, conform-or-escalate, honest states coverage, contract bindings cited, RTM appended.
-
-## When editing the `feature-implementation` skill
-
-The **third loop skill** — the construction step where documents become code: **tasks.md is the program; this skill is the interpreter.** It runs after both design halves exist and ends at *developer-done* (every task checked, including the final verification task); the independent audit belongs to `acceptance-verification` downstream — this skill never grades its own homework alone. Its **seven disciplines** (stated in `SKILL.md`) each target a named agentic failure mode — keep all seven intact:
-
-1. **The program is fixed; improvisation is escalation.** Divergent reality has two paths, never a third: small and design-consistent → implement the intent and record the deviation; anything changing a **contract shape, schema, acceptance criterion, or screen spec** → stop and escalate to the owning skill's amendment path (technical → detailed-design, screens → ui-design). Never a silent redesign — the design documents are what acceptance-verification audits against; drifted code fails honestly later at twice the cost.
-2. **Fresh-context safety — disk is the memory.** Checkbox state = exact position; every iteration executable in a brand-new session; one task per iteration, never two half-done; a WIP note beats any recollection.
-3. **Done-when demonstrated, never asserted** + the **anti-fake-green rule (absolute)**: tests are never weakened, skipped, deleted, or edited to pass (the forbidden moves are *named* in `failure-and-escalation.md`). A red test has exactly two resolutions — fix the code, or escalate the divergence. Fixing a genuinely buggy test *toward the design* is legitimate (recorded in the commit); toward the code is the forbidden move in costume.
-4. **Bounded fix-loops.** Default 3 attempts per task (per-project override: a "fix attempts: N" line in the agent-instructions file); each attempt needs a changed hypothesis; exhaustion → honest stop (unchecked box, failure note in tasks.md, explicit WIP commit), and never skip ahead — order is load-bearing.
-5. **Scope discipline** — this feature only; tech debt discovered en route is recorded, never acted on.
-6. **Convention conformance by construction** — test frameworks inherited from the harness (never introduce a different runner); tokens, never raw values; screens realized per their manifest strategy (tool-backed from locators, code-native from specs + the bounded screenshot loop); boundary/lint rules run per task, not at the end.
-7. **Git is the checkpoint** — one commit per task (`FEAT-NNN T<k>: <summary>`); WIP commits explicitly marked; the log reads as tasks.md's execution log.
-
-Structural things to preserve:
-- **Deterministic next-feature selection**, same discipline as the other loop skills: walk the plan's build sequence; the first feature whose `tasks.md` exists with unchecked tasks is next; announce; never a menu; missing design docs → stop and name them, never improvise a design.
-- **Verification timing is three-tier** (`execution-guide.md`): per task, only that task's done-when runs (never the E2E suite mid-feature); the E2E extension runs at its own pre-minted task (ordered after wiring/UI so the path exists); the full suites (whole-repo + complete E2E) plus **the coverage gate where the project enforces one** run once, at the final verification task — which itself executes under the same per-task cycle and attempt bound.
-- **The anti-fake-green rule extends to coverage configuration**: lowering a threshold, narrowing its scope, or adding exclusion/ignore patterns to pass the gate are named forbidden moves alongside loosening an assertion. A red gate has the same two honest paths as a red test — write the missing tests (the normal case) or escalate toward the architecture's coverage stance when the threshold itself is wrong for this codebase. Never a quiet edit to the config.
-- **Done-when kinds are executed, not improvised**: behavioral tasks author test artifacts; structural/realization tasks demonstrate (zero ceremony tests). The classification is made upstream at design time in detailed-design's `tasks-guide.md` — keep the two files consistent.
-- **tasks.md is updated in place, boxes only** — a task that proves wrong-sized means the design changed: escalate, don't edit the program mid-run. **No RTM writes** — implementation owns no column (Design ref was written upstream, Test ref belongs to acceptance-verification); stated explicitly so nobody "helpfully" adds one.
-- **Repeated blocking is a meta-signal** — the same task blocking across sessions, or several exhausted budgets on one feature, means the design has a systematic problem: recommend the feature go back to detailed-design instead of burning more attempts.
-
-The references support the SKILL's five phases — keep them mutually consistent when changing one:
-- `execution-guide.md` — the per-task cycle (Phase 3): read → survey → implement → satisfy the done-when in its stated kind → run it → hygiene + commit; UI-task specifics (manifest strategies, screenshot loop, state supplements); the E2E task; the final verification task's classification of reds (code wrong → fix; test misencodes → fix toward the design; criterion unsatisfiable → escalate immediately); session/resume discipline.
-- `failure-and-escalation.md` — the bounded fix-loop, the anti-fake-green rule with the named forbidden moves, the divergence protocol (two paths by blast radius), recorded tech debt, the repeated-blocking meta-signal.
-- `verification.md` — the developer-done gate (Phase 4): task completeness (no WIP markers), every criterion demonstrably green in this session, full suites + boundaries + migrations, design conformance (incl. grepping the UI diff for raw values that design.md tokenizes), scope check (the diff is the feature), and the anti-fake-green self-audit.
-
-## When editing the `acceptance-verification` skill
-
-The **fourth loop skill** — the independent auditor that closes the per-feature loop by turning *developer-done* into **verified**. It runs after `feature-implementation` finishes a feature's `tasks.md`. Its three governing principles (stated in `SKILL.md`), keep them intact:
-
-- **The fresh-eyes rule is enforced through derivation, not session hygiene.** Every check is re-derived from the authoritative documents — technical-design §6's criteria cross-checked against the verbatim SRS/UC statements, binding NFRs, and the manifest — **never from tasks.md checkboxes, the implementation's delivery summary, or any session's claimed greens**; those are the artifacts *under audit*, not evidence. The posture (from `audit-guide.md`): *claims are exhibits, observations are evidence.* A fresh session is recommended but the skill isn't refused in-session — the derivation rule does the real work.
-- **Auditor and mechanic stay separate.** Findings **route**: rework → feature-implementation; design defects (missing/misencoded criteria, unsatisfiable design, stale references) → detailed-design's amendment path, which may escalate further per its own rules. This skill **never fixes production code**. The one artifact class it may change: **test artifacts that fail its audit** — rejected weak tests are corrected *toward the criterion, never toward the code*, in separate commits (`FEAT-NNN acceptance: correct test for AC-k`); if the faithful test then fails against the code, that's a rework finding — the system working as intended.
-- **A feature is verified whole or not yet.** Three verdicts — *accepted* / *rework* / *design defect* — with mixed findings taking the most severe; partial acceptance is not a verdict. Only observed greens count: every suite re-run fresh from the repo state with the harness's own commands (never improvised invocations), plus direct requirement verification beyond the tests (side-effect FRs inspected; cheap NFRs measured with environment caveats; infrastructure-needing NFRs recorded as *pending environment* — never silently skipped, never fake-verified locally).
-
-Structural things to preserve:
-- **Deterministic next-feature selection**, same discipline as the other loop skills: walk the plan's build sequence; the first feature that is *developer-done* (tasks.md fully checked) but has no accepted acceptance report is next; announce the resolution; never present a menu; explicit user naming is the only off-sequence path. Not developer-done → say so and stop; already accepted → ask (re-verification is legitimate).
-- **Output is `acceptance-report.md`** in the feature folder, carrying the complete source → criterion → test → observation audit chain. Re-verification after rework or an amendment is a normal full run (standard re-derived from the amended documents); the report gains a new dated verdict section with prior verdicts preserved.
-- **RTM write-back is Test-ref only, on acceptance only, append-only.** A feature that implements an FR partially appends its report ref with a permanent `(partial)` marker; **full verification is computed** (every feature in the FR's Plan ref has an accepted report in Test ref), never stored. The contract lives in `requirements-engineering/references/rtm-guide.md` — keep the two in sync.
-
-The references support the SKILL's six phases — keep them mutually consistent when changing one:
-- `audit-guide.md` — re-deriving the standard (Phase 2, incl. partial-FR scoping and auditing the standard itself), the criterion-by-criterion test audit — covered / faithful / exercised, with the mutation check — plus the independent anti-fake-green diff review (Phase 3, which diffs the **coverage config** over the feature's commit range the same way it diffs test files: downward drift that merely admitted this feature is a finding), the independent execution order (Phase 4 — feature suite → whole-repo → E2E → **the coverage gate as CI runs it** → migrations; the audit checks the config, the re-run supplies the number, so it never re-measures coverage independently), direct requirement verification (Phase 5), and the severity discipline (rework / design defect / minor).
-- `verdict-and-report.md` — the three verdicts and their routing, the `acceptance-report.md` template, the RTM Test-ref rules (`(partial)` permanence, computed full verification), and the live-computed delivery summary (Phase 6).
-
-## When editing the `sdlc-orchestrator` skill
-
-The **eleventh skill** and the only one that sits *over* the loop rather than in it — the loop driver and lifecycle router. Its defining constraint is being **deliberately thin**: it does none of the stages' work, and the moment guidance here starts to look like design or build logic, that logic belongs in a stage skill instead. Its three governing principles (stated in `SKILL.md`), keep them intact:
-
-- **Compute, never store.** The global position is derived fresh every invocation — the plan's build sequence joined to each feature's folder state (the stage-detection table in `routing-guide.md`: `technical-design.md`→designed, `ui-design.md`→ui-designed, `tasks.md` fully checked→developer-done, accepted `acceptance-report.md`→verified; a WIP failure note→*blocked*, a stop state not a stage). **No orchestrator state file, no stored pointers** — a brand-new session recomputes the same position. Don't add a status/pointer file; it would duplicate (and drift from) the artifacts the way a plan status field would break implementation-planning's ownership.
-- **Skills stay sovereign.** It invokes stages *as themselves* (each re-resolves its own position and should land on the feature the orchestrator computed — a divergence is a signal to stop and reconcile, never to override), reads their on-disk outcomes as the next stage's input (never a summary), and **never reaches into a stage's job**: never edits `tasks.md`, writes an RTM column, or resolves an escalation/amendment itself. Human-judgment points (amendments, exhausted blocks, design defects) **pause and surface** — autonomy covers the mechanical cycle, not the decisions the pipeline reserved for people.
-- **Every stop is a resumable state.** The loop halts only on the defined stop conditions, each leaving disk truthful (inherited from the stage skills' discipline); resuming is just re-running. Every pause message carries four elements (`routing-guide.md`): what stopped, where (feature + stage + artifact), who owns the next move, and the resume instruction.
-
-Structural things to preserve:
-- **Three run scopes** (one stage / one feature cycle = default / run-until-blocked) and the **outcome routing**: rework → re-invoke feature-implementation then re-verify, **bounded at 2 rework cycles** before surfacing (auditor vs. builder disagreeing repeatedly is a design-quality signal); design-defect/filed-escalation/blocked-task → pause-class, surfaced toward the owning skill; plan-complete → close and point at deployment (`initial-deployment` when the system was never deployed — a **pointer**, not an invocation: the orchestrator drives the loop, not the one-pass skills around it).
-- **Two lifecycle routes** in `lifecycle-routes.md`, both re-entering work through the *top* of their chain to protect the inheritance chain (every piece of work traces to IDs minted upstream): the **feature-cycle route** (change requests walk requirements → architecture/ux impact → plan amendments in order, each step's artifact verified to have landed before the next, so a FEAT is never minted without its FRs) and the **maintenance route** (a bug → locate owner via RTM Plan ref → `docs/defects.md` `DEF-NNN` row → **failing test first** → scoped fix under feature-implementation's disciplines → re-verify; a design-rooted bug reroutes to the design-defect path).
-- **It owns exactly one artifact, `docs/defects.md`** (`DEF-NNN` — sequential, immutable, never recycled, same ID discipline as the rest of the pipeline), and **writes nothing else** — no pipeline document, no RTM column. When editing, don't add RTM writes here (the maintenance route deliberately relies on the existing Test-ref pointer + the report's new dated section, not a new cell).
-- **Deterministic, announced, never a menu** — the same next-selection discipline as the loop skills, at global scope; explicit user naming is the only off-sequence path. Announce the computed position before every invocation.
-
-The references support the SKILL's jobs — keep them mutually consistent when changing one:
-- `routing-guide.md` — loop-driving mechanics: the stage-detection table (computed position), the invocation contract, the three run scopes, outcome routing (incl. the 2-cycle rework bound), pause discipline (the four-element message), and the fresh-context/session notes.
-- `lifecycle-routes.md` — the two beyond-the-loop routes: the change-request amendment chain (order + skip-only-where-an-impact-note-says) and the bug-fix maintenance route (defect ledger, failing-test-first, scoped fix, re-verification), plus what both protect (the inheritance chain).
-
-## Validating changes
-
-There's nothing to build or run. To sanity-check a skill:
-- Confirm `SKILL.md` frontmatter `name` matches the directory name.
-- Verify every `references/...` path mentioned in `SKILL.md` actually exists.
-- Render any Mermaid you add (GitHub preview or a Mermaid live editor) — the diagram guide's reliability notes exist because broken diagrams are the common failure.
+Load-bearing and easy to break:
+
+- **`skills/<name>/SKILL.md` is the flat layout the [`skills` CLI](https://www.skills.sh)
+  discovers.** Moving a skill out of `skills/` breaks
+  `npx skills add <repo> --skill <name>`.
+- **Frontmatter has exactly two keys: `name` and `description`.** `name` must equal
+  the directory name and the `--skill` argument. No `license:` key, no per-file
+  headers — `SKILL.md` content enters an agent's context on every invocation.
+- **`description` is the only thing an agent sees when deciding to invoke the
+  skill.** It carries the trigger phrases and the "use this when…" intent. Editing
+  it changes *when the skill fires* — treat as load-bearing, never boilerplate.
+- **The CLI resolves against the pushed GitHub repo** (`zeeshanhanif/agentic-sdlc-kit`),
+  not the local tree. Layout/frontmatter changes reach users only after a push.
+- **Manual install lands at `~/.claude/skills/<name>/SKILL.md`** (personal) or
+  `.claude/skills/<name>/SKILL.md` (project). One level too deep silently fails.
+- Renaming a skill directory or its frontmatter `name` changes the install command
+  → update README's Install section and every example in lockstep.
+
+## 3. The twelve skills at a glance
+
+Skills 1–6 are **one-pass** (linear, run once, in this order). 7–10 are **loop
+skills** (once per feature, forever, in this order). 11 drives the loop; 12 audits
+the seams.
+
+| # | Skill | Reads | Writes | RTM column | Checkpoint |
+| :- | :--- | :--- | :--- | :--- | :--- |
+| 1 | `requirements-engineering` | you | `srs.md`, `use-cases.md`, `rtm.md` | rows + requirement cols | `.requirements-progress.md` |
+| 2 | `software-architecture` | srs, use-cases | `architecture.md` | **Design ref** (ADRs) | — |
+| 3 | `ux-foundations` | srs, architecture, use-cases | `ux-foundations.md`, `design.md`, `tokens.json` | — | — |
+| 4 | `implementation-planning` | srs, use-cases, architecture, ux | `implementation-plan.md` | **Plan ref** | — |
+| 5 | `project-scaffolding` | architecture, plan, ux trio, srs (light) | **the repo**, `scaffold-notes.md` | none | `.scaffold-progress.md` |
+| 6 | `initial-deployment` | architecture, repo deploy artifacts, scaffold-notes | **live system**, `deployment-notes.md` | none | `.deployment-progress.md` |
+| 7 | `detailed-design` | plan, srs, use-cases, architecture, **codebase** | `features/FEAT-*/technical-design.md`, `tasks.md` | **Design ref** (append) | — |
+| 8 | `ui-design` | that feature's technical-design, design.md, tokens, ux inventory | `design-manifest.json`, `features/FEAT-*/ui-design.md`, `anchor-screens.md` | **Design ref** (append) | — |
+| 9 | `feature-implementation` | `tasks.md` + both design halves + manifest | code, tests, commits | none | `tasks.md` checkboxes |
+| 10 | `acceptance-verification` | authoritative docs + repo | `features/FEAT-*/acceptance-report.md` | **Test ref** (on acceptance) | — |
+| 11 | `sdlc-orchestrator` | everything on disk | `defects.md` only | none | none (computes) |
+| 12 | `pipeline-verify` | everything (read-only) | `pipeline-verify-report.md` (derived) | none | none |
+
+All paths are under `docs/` in the *user's* project.
+
+## 4. Cross-skill contracts — check these before editing anything
+
+These are the couplings that make twelve skills behave as one system. Change one
+end and you must change the other.
+
+### 4.1 ID discipline (universal)
+
+`FR-<AREA>-NNN` / `NFR-<CAT>-NNN` and `UC-NNN` (requirements-engineering),
+`ADR-NNN` (architecture), `SCR-<CODE>-NNN` (ux-foundations), `FEAT-NNN` (planning),
+`DEF-NNN` (orchestrator). Every one: **sequential, immutable, never recycled,
+tombstoned (`Deprecated`/`Removed`, row kept) rather than deleted or renumbered.**
+Downstream skills **skip tombstoned** items instead of building them. `FEAT-NNN` is
+also the feature-folder key (`docs/features/FEAT-NNN-<slug>/`), which is why
+re-sequencing the plan never invalidates folder names.
+
+### 4.2 Source-gated traceability (universal)
+
+Cite an ID **only when the document defining it is present**; otherwise state the
+driver in plain prose. **Never fabricate an ID.** This is what keeps every skill
+usable standalone. It governs ADR "Requirements addressed" fields, plan slices,
+design refs, templates, and verification files alike.
+
+### 4.3 RTM column ownership (`docs/rtm.md`)
+
+Multi-writer ledger, exclusive columns, **append never overwrite**, touch only your
+own column at your own delivery time, **skip silently when there's no RTM**:
+
+- rows + requirement columns → `requirements-engineering` (initializes Design/Plan/
+  Test as `_TBD_`)
+- **Plan ref** → `implementation-planning` (keyed by FEAT ID; scheduling ≠ design,
+  which is why it's its own column)
+- **Design ref** → `software-architecture` (ADR refs, per a layer rule), then
+  appended by `detailed-design` and `ui-design` per feature
+- **Test ref** → `acceptance-verification`, **on acceptance only**, with a permanent
+  `(partial)` marker when a feature implements an FR partially. **Full verification
+  is computed** (every feature in the FR's Plan ref has an accepted report), never
+  stored in the cell.
+- **No column:** scaffolding, initial-deployment, feature-implementation,
+  sdlc-orchestrator, pipeline-verify. Don't let anyone "helpfully" add one.
+
+Contract lives in `requirements-engineering/references/rtm-guide.md`.
+
+### 4.4 The testing chain — decided once, realized four times
+
+`software-architecture`'s cross-cutting **Testing** entry (Round 7) is the single
+decision point: strategy, the **critical flows covered by E2E** (UC IDs when use
+cases exist), the **frameworks** (unit/integration runner per stack unit + E2E
+framework), and the **coverage stance** — *none / report-only / enforced threshold
+N%* with scope (changed-code vs whole-repo) and driver.
+
+- `project-scaffolding` realizes exactly that: installs the named runners, stands up
+  the E2E workspace, wires coverage per the stance (gating job / report-only /
+  nothing). Silent architecture → ecosystem default runner, **no** coverage tooling,
+  noted as a candidate amendment. Never "helpfully" add coverage tooling.
+- `detailed-design` mints the flow-aware E2E-extension task from the same entry.
+- `feature-implementation` **inherits** the frameworks (never introduces a runner)
+  and treats the gate as part of developer-done.
+- `acceptance-verification` diffs the coverage config over the feature's commit
+  range and **re-runs the gate as CI runs it** (it audits the config; the number
+  comes from the re-run, never an independent re-measurement).
+
+Change the stance vocabulary in one file and all four move together.
+
+### 4.5 The configuration chain
+
+`project-scaffolding` mints a **config template per deployable unit** (placeholders,
+secrets grouped, scope markers) and makes units read config from day one;
+`feature-implementation` follows the config-variable task protocol (add to the unit
+template, set a local gitignored value, flag deployment-affecting changes in the
+delivery summary); `initial-deployment` Phase 4 asks the config mechanism
+(plain/store/split) and **reconciles templates against the target environment before
+deploying**, then wires secrets. The architecture's deployment view records the
+**deployed environment set and promotion order only** — not variable names, not the
+config mechanism, and local is excluded from it.
+
+### 4.6 Computed, never stored
+
+Loop position is **derived from artifacts** every time — never a status field, never
+a pointer file:
+
+| Artifact state | Meaning |
+| :--- | :--- |
+| `technical-design.md` exists | designed |
+| `+ ui-design.md` | ui-designed |
+| `tasks.md` all boxes checked | developer-done |
+| accepted `acceptance-report.md` | verified |
+| WIP failure note in `tasks.md` | **blocked** (a stop state, not a stage) |
+
+The plan is never written with status (that would break implementation-planning's
+ownership of it). The orchestrator has **no state file**. Progress lines skills
+report are live-counted.
+
+### 4.7 Deterministic next-selection, announced, never a menu
+
+Every loop skill walks the plan's build sequence and takes the first feature in its
+own "next" state; it **announces** the resolution rather than offering a menu (a
+menu invites off-sequence violations of dependency order). Explicit user naming is
+the only off-sequence path. The orchestrator inherits the same rule at global scope,
+and a divergence between its computed position and a stage's own resolution is a
+signal to **stop and reconcile**, never to override.
+
+### 4.8 Escalate, don't fork — and single-writer discipline
+
+- `detailed-design`: new entity / consistency-boundary change → **architecture
+  amendment**, never designed locally.
+- `ui-design`: off-system screen, colour, component → **ux-foundations amendment**,
+  never a forked `design.md`.
+- `feature-implementation`: two paths by blast radius, never a third — small and
+  design-consistent → implement the intent and record; contract / schema /
+  acceptance-criterion / screen-spec change → escalate to the owning skill.
+- `acceptance-verification`: findings **route** (rework → implementation; design
+  defect → detailed-design's amendment path). It never fixes production code; the
+  one artifact class it may change is a weak **test**, corrected *toward the
+  criterion, never toward the code*.
+- `sdlc-orchestrator`: never edits `tasks.md`, never writes an RTM column, never
+  resolves an escalation. Human-judgment points pause and surface.
+- **Exactly one sanctioned foreign write in the whole kit:** `initial-deployment`
+  closing the *pending initial deployment* marker in `docs/scaffold-notes.md`, in
+  place, with date and evidence. Don't let this widen, and don't add a second.
+
+### 4.9 Live-reality rule
+
+Never recite remembered CLI syntax. `project-scaffolding` verifies generator names
+and flags **against live docs before first use** (not only when uncertain);
+`initial-deployment` verifies provider CLI specifics at run time (provider CLIs
+drift faster); `ui-design` verifies design-tool connection steps rather than
+guessing, and never silently downgrades to code-native.
+
+### 4.10 Anti-fake-green (implementation + audit)
+
+Tests are never weakened, skipped, deleted, or edited to pass; **the coverage
+threshold, its scope, and its exclusion/ignore patterns are equally off-limits**. A
+red test or gate has exactly two honest resolutions: fix the code, or escalate the
+divergence. Fixing a genuinely buggy test *toward the design* is legitimate and
+recorded. The forbidden moves are named explicitly in
+`feature-implementation/references/failure-and-escalation.md` — keep them named.
+
+### 4.11 Process hygiene / cold start
+
+Stale dev servers produce false greens. `feature-implementation` restarts from a
+known state before done-when checks and stops demo processes at task/session end
+(including blocked stops); `acceptance-verification` cold-starts the local stack for
+every audit and tears down what *this run* started; `project-scaffolding` stops
+skeleton processes at delivery or discloses what's still running. **Stop only what
+this run started — never kill by port scan.**
+
+### 4.12 Agent-instructions layout in generated repos
+
+`project-scaffolding` writes **`AGENTS.md`** at the repo root carrying all the
+substance (pipeline docs, `design.md`, conventions, the `fix attempts: N` bound),
+with **`CLAUDE.md` containing only `@AGENTS.md`** as a pointer. One source of truth;
+two files with content inevitably diverge. Don't reintroduce a substantive
+generated CLAUDE.md.
+
+### 4.13 Checkpointing and non-destructive re-runs
+
+`requirements-engineering`, `project-scaffolding`, and `initial-deployment` write
+progress trackers and resume. Scaffolding **never regenerates over a partial
+scaffold**; deployment **never blindly re-provisions** — partial state is verified
+against *the provider*, and provisioning the tracker can't account for stops the
+run.
+
+## 5. Per-skill invariants
+
+Only what must not break. Full behaviour lives in each `SKILL.md`.
+
+### `requirements-engineering`
+
+- Two governing principles: **exhaustive enumeration, not transcription** (propose
+  the full standard sub-requirement set per area; auth → sign-up, sign-in,
+  verification, reset, logout, expiry, lockout, rate limiting…) and **structured and
+  traditional** (IEEE 29148/830-lineage SRS, numbered testable requirements — *not*
+  an agile backlog). Feature slicing belongs to `implementation-planning`.
+- **Markdown only** — three outputs. Word/docx generation was deliberately removed
+  (Pandoc/python-docx dependency); don't reintroduce a docx phase.
+- **Phase 0 is three-way mode detection** (fresh / resume / amendment) from disk
+  state + plain-language intent, no flag. Two firm rules: **resume beats amend**,
+  and **confirm before acting** when an SRS exists and intent is ambiguous.
+  Finalization is recorded in the tracker (Phase 7) and is what distinguishes
+  amendment from resume.
+- **FR syntax is a once-per-SRS choice** — EARS or free-form "shall" — made at the
+  end of Phase 1, **before the first FR is minted, never re-asked**, recorded in the
+  SRS header (`Requirement syntax:`) and the tracker, binding on all amendments.
+  Default EARS. Governs **FRs only**; NFRs always keep metric/target/condition form.
+  Resume/amendment read it from disk.
+- Both syntaxes run the **unwanted-behavior pass** (error counterparts get their own
+  IDs) — enumeration discipline applied to error handling.
+- **Phase A cardinal rule: IDs immutable, never recycled.** Every amendment bumps
+  the version + revision history, propagates to use cases and the RTM, and emits a
+  **cross-skill impact note** (it can't edit downstream docs; the RTM's downstream
+  refs on tombstoned rows are what make dangling references visible).
+- References: `elicitation-guide`, `requirement-catalog`, `ears-guide`,
+  `use-case-guide`, `rtm-guide`, `srs-template`, `checkpointing`,
+  `change-management`. More references than any other skill — keep them mutually
+  consistent (esp. `ears-guide` ↔ `elicitation-guide`'s unwanted-behavior pass ↔
+  `srs-template`'s example table).
+
+### `software-architecture`
+
+- Principle: **driven by quality attributes and constraints, not technology.**
+  Workflow enforces *understand → decide → document*; every tech choice traces to a
+  stated requirement. Don't add guidance that reaches for a stack first.
+- **SRS primary, use cases secondary; RTM deliberately not consumed.** With an SRS,
+  Phase 1 is *ingest → play back drivers → interview only the gaps*. Use cases feed
+  the **runtime view** (sequence diagrams by UC ID) and **resilience/security**
+  (exception flows → failure handling; actors → trust boundaries). Preserve the
+  graceful fallback to the full seven-round interview.
+- Boundary: SRS states *what*; architecture decides *how*. Read only **mandated**
+  tech from SRS constraints.
+- Owns the **testing decision point** (§4.4) — name frameworks and thresholds
+  concretely; a vague entry becomes four skills guessing.
+- Diagrams: C4 as inline Mermaid, **plain `flowchart`/`graph` syntax, not
+  experimental Mermaid C4** (portability).
+- References: `elicitation-guide`, `decision-guide`, `document-template`,
+  `diagram-guide`, `adr-template`.
+
+### `ux-foundations`
+
+- Principle: **one shared core, defined once, plus a per-surface layer.** Don't
+  collapse into a monolith or let surfaces become independent design systems. Stays
+  at system/spec level — no pixel-perfect screens, no component code.
+- **Two input classes with opposite rules:** pipeline documents are **read silently,
+  never asked about**; the **design source is always asked, never assumed**
+  (detection says what's *possible*, only the user says what's *wanted*). Don't
+  merge these into "detect and go."
+- **Four source modes** (research / extract from images / ingest a design file /
+  connect a design tool). Every mode ends by **playing back a proposed direction for
+  confirmation**. Images are read only from `docs/design-refs/` — never scan the
+  wider project.
+- **SRS accessibility/usability NFRs override every mode's output** (adjust, and
+  record the change in provenance). Non-negotiable.
+- **Three outputs, strict authority split:** `tokens.json` (canonical W3C DTCG
+  values) → `design.md` (render-time system; its CSS is *derived* from tokens) →
+  `ux-foundations.md` (plan-time; *references* design.md, never restates values).
+- **`design_provenance`** in `design.md` is a JSON block written in **every** mode
+  (mode + fidelity always; `source` sub-object only in tool mode) — `ui-design`
+  reads it to drive its anchor recommendation. Keep it machine-readable.
+- Hand-offs: the **SCR-ID screen inventory** feeds planning and ui-design;
+  `design.md` + `tokens.json` are wired into the repo by scaffolding.
+- References: `elicitation-guide`, `source-modes`, `design-tool-integrations`,
+  `design-system-guide`, `surface-profile-guide`, `design-md-guide`,
+  `document-template`, `diagram-guide`.
+
+### `implementation-planning`
+
+- Principles: **slice vertically, never horizontally**, and **make the architecture
+  executable before complete** (walking skeleton first). **Depth-on-demand** — don't
+  elaborate the whole backlog upfront. It **stops at the plan**.
+- Consumes all four upstream docs, each degrading independently. Every slice traces
+  FR + UC + SCR IDs; **skips tombstoned** items.
+- Two delivery behaviours to preserve: the **Must-coverage check** (every Must FR in
+  a slice or consciously deferred) and the **RTM Plan-ref write-back**.
+- The epic/feature breakdown is a **default** section; the issue-tracker export is
+  **off by default**.
+- References: `slicing-guide`, `sequencing-guide`, `verification`,
+  `document-template`, `diagram-guide`.
+
+### `project-scaffolding`
+
+- Output is a **running repo**, so verification is empirical — Phase 7 actually
+  builds and runs; never assert a green skeleton.
+- Principles: **stack is an input, never a decision** (gaps → elicited *and* flagged
+  as candidate architecture amendments); **official generators first** (verified
+  against live docs, run for real, then customized; hand-build only where no
+  generator exists); **it owns the stack-independent layer** (skeleton wiring,
+  module boundaries as folder + lint/import rules, design system in the UI shell —
+  delete `tokens.json` and the shell should visibly break — pipeline conventions,
+  empirical verification).
+- Stops at **deploy-ready, not deployed**. What it writes (deployment config,
+  parameterization, secret placeholders, CI) is `initial-deployment`'s **input**,
+  not a placeholder to hand-wave.
+- Compose-first local stack: pinned, version-aligned store images; non-store
+  dependencies asked once.
+- Installation discipline: **project-local deps first**; global installs only after
+  an explicit ask. READMEs: replace generator boilerplate with a system-scoped root
+  README (+ unit READMEs where warranted, linking up, no duplication).
+- `docs/scaffold-notes.md` is **project-owned** and carries the *pending initial
+  deployment* marker (§4.8).
+- References: `checkpointing`, `scaffolding-guide`, `skeleton-guide`,
+  `verification`. Keep `skeleton-guide`'s testing section in sync with the
+  architecture's Testing entry shape.
+
+### `initial-deployment`
+
+- Scaffolding's twin one step later; the only skill that **spends money and touches
+  the user's cloud account** — that's what its rules protect.
+- Principles: **target is an input, never a decision** (conform-or-escalate;
+  cloud-agnostic process, cloud-specific run, live provider docs); **money and
+  credentials get gates** (one explicit confirmation before anything billable; never
+  ask for, store, or write a secret **value** — configs reference stores, values
+  enter out-of-band, a non-secret canary proves the wiring); **deployed means
+  demonstrated** (live skeleton exercise, an observed CD run, a performed restore, a
+  fired alert).
+- **Operations are folded in, not deferred** (Phase 7 floor: uptime, error alerting,
+  reachable logs, backup **plus a performed restore**, TLS/domain). Don't let it drift
+  optional or expand into full day-2 ops.
+- **Writes no RTM column and does not update acceptance reports** — pending-environment
+  NFR measurements go in `deployment-notes.md` and it *recommends re-running*
+  `acceptance-verification`. Keep that jurisdiction boundary.
+- `docs/deployment-notes.md` is project-owned; **no secret value ever appears in
+  it**. Artifact names follow the skill name (`deployment-notes.md`,
+  `.deployment-progress.md`) — rename one and rename it everywhere.
+- **When to run is a recommendation with a stated trade-off**, not a gate. Keep both
+  paths honest.
+- References: `deployment-guide`, `operations-minimum`, `verification`.
+
+### `detailed-design`
+
+- Loop skill, run once per feature in a fresh session against a **moving codebase**.
+- Principles: **the *what* is fixed upstream** (inheritance by ID; new entities
+  escalate); **the live codebase is a mandatory read and reality wins over
+  documents** where they diverge (noted); **depth here, and only here.**
+- File is **`technical-design.md`**, not `design.md` — avoids colliding with the
+  design *system* at `docs/design.md`.
+- `tasks-guide` owns two contracts `feature-implementation` executes: the
+  **computed, flow-aware E2E obligation** (feature UC IDs ∩ architecture's critical
+  flows → an explicit E2E-extension task before final verification; skip
+  legitimately when the architecture is silent) and **done-when kind classification**
+  — *behavioral* tasks get test-artifact done-whens, *structural/realization* tasks
+  get demonstration done-whens (**no ceremony tests asserting mere existence**).
+  Verification is universal; test artifacts attach to behaviour.
+- References: `design-guide`, `tasks-guide`, `verification`.
+
+### `ui-design`
+
+- Sequential sibling of detailed-design (per-feature mode binds screens to that
+  feature's contracts). Only **anchor mode** precedes features.
+- Principles: **strategy resolved per screen, not per project**; **conform or
+  escalate — never fork the design system**; **the manifest is the only registry and
+  this skill is its single writer** — which is what lets it be an **adapter** that
+  absorbs all design-tool variance so **no downstream skill ever learns what a Figma
+  node is**.
+- Three modes: anchor (2–3 compositionally demanding screens; recommendation
+  strength driven by `design_provenance`) → writes `docs/anchor-screens.md`;
+  per-feature → `features/FEAT-*/ui-design.md`; re-verification after a `design.md`
+  amendment.
+- Design tools are treated **capability-first** (enumerate existing / generate from
+  spec), interchangeable behind those two capabilities.
+- **Heading formats in `document-templates.md` are load-bearing** — manifest source
+  locators anchor on them. Don't restyle headings casually.
+- References: `strategy-guide`, `design-tool-integrations`, `manifest-guide`,
+  `document-templates`, `verification`.
+
+### `feature-implementation`
+
+- **`tasks.md` is the program; this skill is the interpreter.** Ends at
+  *developer-done*; it never grades its own homework alone.
+- **Seven disciplines**, each killing a named agentic failure mode — keep all seven:
+  improvisation-is-escalation; fresh-context safety (disk is the memory, one task
+  per iteration); done-when-demonstrated + anti-fake-green; **bounded fix-loops**
+  (default 3, override via a `fix attempts: N` line in the agent-instructions
+  file; each attempt needs a
+  changed hypothesis; exhaustion → unchecked box + failure note + explicit WIP
+  commit; **never skip ahead**); scope discipline; convention conformance
+  (inherited frameworks, tokens never raw values, manifest-driven screens);
+  git-as-checkpoint (`FEAT-NNN T<k>: …`, one commit per task).
+- **Three-tier verification timing:** per task only that task's done-when (never the
+  E2E suite mid-feature); the E2E extension at its own pre-minted task; full suites
+  + the coverage gate once, at the final verification task (which itself runs under
+  the per-task cycle and attempt bound).
+- **`tasks.md` is updated in place, boxes only.** A wrong-sized task means the design
+  changed → escalate, don't edit the program mid-run.
+- **Repeated blocking is a meta-signal** — same task blocking across sessions, or
+  several exhausted budgets on one feature → recommend returning to
+  `detailed-design`, don't burn more attempts.
+- References: `execution-guide`, `failure-and-escalation`, `verification`.
+
+### `acceptance-verification`
+
+- Principles: **fresh-eyes enforced through derivation** (re-derive from
+  technical-design §6 + verbatim SRS/UC + binding NFRs + the manifest; **never** from
+  checkboxes, delivery summaries, or claimed greens — *claims are exhibits,
+  observations are evidence*); **auditor and mechanic stay separate** (never fixes
+  production code; may correct weak **tests** toward the criterion, in separate
+  commits `FEAT-NNN acceptance: correct test for AC-k`); **a feature is verified
+  whole or not yet** (three verdicts, most severe wins, no partial acceptance).
+- Suites are re-run with **the harness's own commands**, never improvised
+  invocations. Infrastructure-needing NFRs are recorded as *pending environment* —
+  never silently skipped, never fake-verified locally.
+- Re-verification after rework or amendment is a **normal full run**; the report
+  gains a new dated verdict section, prior verdicts preserved.
+- References: `audit-guide`, `verdict-and-report`. Keep the Test-ref rules in sync
+  with `requirements-engineering/references/rtm-guide.md`.
+
+### `sdlc-orchestrator`
+
+- **Deliberately thin.** If guidance here starts to look like design or build logic,
+  it belongs in a stage skill.
+- Principles: **compute, never store** (no state file, no pointers); **skills stay
+  sovereign**; **every stop is a resumable state**.
+- Three run scopes (one stage / one feature cycle = default / run-until-blocked).
+  Outcome routing: rework → implementation then re-verify, **bounded at 2 rework
+  cycles** before surfacing; design-defect / filed escalation / blocked task →
+  pause and surface toward the owner; plan-complete → close and **point at**
+  `initial-deployment` (a pointer, not an invocation — it drives the loop, not the
+  one-pass skills).
+- Every pause message carries four elements: what stopped, where (feature + stage +
+  artifact), who owns the next move, the resume instruction.
+- **Two lifecycle routes, both re-entering through the top of their chain** so the
+  inheritance chain holds: change requests walk requirements → architecture/UX
+  impact → planning (each artifact verified to have landed before the next — **no
+  FEAT without its FRs**); bugs → RTM Plan ref locates the owning feature →
+  `docs/defects.md` `DEF-NNN` → **failing test first** → scoped fix under
+  feature-implementation's disciplines → re-verify (design-rooted bugs reroute to
+  the design-defect path).
+- Owns exactly one artifact (`docs/defects.md`) and writes nothing else. The
+  maintenance route deliberately relies on the existing Test-ref pointer + the
+  report's new dated section — **don't add an RTM write here.**
+- References: `routing-guide`, `lifecycle-routes`.
+
+### `pipeline-verify`
+
+- **Tier 2** of the verification design (tier 1 is each stage skill's own delivery
+  check). Both tiers run; neither substitutes for the other.
+- Principles: **mechanical only** (decidable by reading and computing; taste belongs
+  to the stage skills); **read-only, derived-output-only** (writes no pipeline
+  artifact; `docs/pipeline-verify-report.md` is a derived view — overwritten,
+  deletable, regenerable); **fresh eyes, actual commands** (grep/parse/diff — never
+  eyeball a large matrix; the checks are specified so a script could run them).
+- Absent documents **scope checks out and are reported as skipped**, never failed —
+  source-gating applies to verification too. Absence of evidence is never reported
+  as cleanliness.
+- Findings are classified **error / warning / info** and grouped by **owning skill**;
+  this skill fixes nothing.
+- Its dashboard must agree with what the orchestrator would compute — same
+  artifacts, same rules, independently derived. Running it twice unchanged must
+  yield the identical report.
+- References: `checks-guide` (the seam catalog + ID regex namespaces),
+  `report-guide` (severities, dashboard, report).
+
+## 6. Editing conventions
+
+- **Progressive disclosure is the core pattern.** `SKILL.md` stays a lean workflow
+  (phases, rules) and tells the agent to read a *specific* `references/*.md` at the
+  moment it's needed. Adding depth means extending a reference and pointing at it
+  from the relevant phase — not growing `SKILL.md`.
+- **Keep vocabulary identical across skills.** Requirement IDs, artifact filenames,
+  surface/container naming, screen-inventory shape, column ownership, coverage-stance
+  words. A synonym introduced in one skill is a bug in the other eleven.
+- **Mermaid: prefer plain `flowchart`/`graph` syntax** over experimental C4 syntax,
+  everywhere. Broken diagrams are the common failure mode.
+- **Voice:** imperative, second person, specific. Name the failure mode a rule
+  prevents — that's what makes a rule survive compression in an agent's context.
+- **README and CHANGELOG are part of every change.** README carries the user-facing
+  detail (skill table, sequence, install commands, per-skill sections, "What's
+  inside" trees); `CHANGELOG.md` gets a dated entry. Adding or removing a reference
+  file or a skill means editing both.
+
+## 7. Validating a change
+
+There is nothing to build or run. Check:
+
+```bash
+# 1. frontmatter name matches the directory name
+for f in skills/*/SKILL.md; do
+  d=$(basename "$(dirname "$f")"); n=$(grep -m1 '^name:' "$f" | cut -d' ' -f2)
+  [ "$d" = "$n" ] || echo "MISMATCH: $d vs $n"
+done
+
+# 2. every referenced path exists
+grep -rhoE 'references/[a-z-]+\.md' skills/*/SKILL.md | sort -u
+
+# 3. no stale skill/artifact names after a rename
+grep -rn '<old-name>' skills/ README.md CLAUDE.md CHANGELOG.md
+```
+
+Then render any new Mermaid (GitHub preview or a Mermaid live editor), and re-read
+§4 for any contract your edit touched — the ripple is the part that breaks silently.
