@@ -889,4 +889,5 @@ skills/sdlc-orchestrator/
 
 ## License
 
-[MIT](./LICENSE) — use it, fork it, adapt it.
+[Apache License 2.0](./LICENSE) — use it, fork it, adapt it. If you redistribute
+it, keep the [`NOTICE`](./NOTICE) file and state what you changed.

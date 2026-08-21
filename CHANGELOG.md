@@ -7,6 +7,15 @@ This project does not yet publish tagged releases, so entries are grouped by dat
 
 ## [Unreleased]
 
+### Changed
+- **License** changed from **MIT** to the **Apache License 2.0**. Apache adds an
+  explicit patent grant with a retaliation clause and requires downstream
+  modifiers to state that they changed files. Adds a root **`NOTICE`** file that
+  redistributions must carry forward (Apache-2.0 §4(d)); the README License
+  section points at both. Skills are unchanged — no per-file license headers and
+  no `license:` frontmatter key, since `SKILL.md` content is loaded into an
+  agent's context on every invocation.
+
 ## [2026-08-11]
 
 ### Changed

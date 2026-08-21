@@ -77,6 +77,13 @@ acceptance assertion is rework-class at least).
 
 - From the actual repo head, with the harness's own commands
   (scaffold-notes/agent-instructions — never improvised invocations).
+- **Cold start, always.** Bring the local stack up fresh with the commands
+  scaffold-notes records; **never reuse a process another session started.**
+  A stale server serves the code it was started with, so green observed
+  against it proves nothing about the repo state under audit — and this
+  skill's entire value is that only observed green counts. Tear down what
+  this run started when the audit finishes; never kill by port scan (that
+  process may not be the project's).
 - The order that localizes failures: feature suite → whole-repo suite → E2E
   (including this feature's owed path) → **the coverage gate where the
   project enforces one** (run as CI runs it, at the configured threshold and
