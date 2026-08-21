@@ -130,28 +130,44 @@ you want a health check.
 
 ### Method 1 — the `skills` CLI (recommended)
 
-One command per skill, and it works across Claude Code, Cursor, GitHub Copilot,
-and the other agents the [`skills`](https://www.skills.sh) CLI supports:
+Works across Claude Code, Cursor, GitHub Copilot, and the other agents the
+[`skills`](https://www.skills.sh) CLI supports.
+
+**Install the whole kit in one command** — `--all` takes every skill in the repo,
+installs it to every agent it detects, and skips the prompts:
+
+```bash
+npx skills add https://github.com/zeeshanhanif/agentic-sdlc-kit --all
+```
+
+**Or pick from a list.** Run it without `--skill` and the CLI shows an interactive
+checklist of all twelve (space to toggle, with a select-all) — it does not install
+everything silently:
+
+```bash
+npx skills add https://github.com/zeeshanhanif/agentic-sdlc-kit
+```
+
+**Install one skill** by naming it:
 
 ```bash
 npx skills add https://github.com/zeeshanhanif/agentic-sdlc-kit --skill requirements-engineering
 ```
 
-Swap the `--skill` value for any other skill in the kit:
+Swap the `--skill` value for any other skill in the kit: `software-architecture`,
+`ux-foundations`, `implementation-planning`, `project-scaffolding`,
+`initial-deployment`, `detailed-design`, `ui-design`, `feature-implementation`,
+`acceptance-verification`, `sdlc-orchestrator`, `pipeline-verify`.
 
-```bash
-npx skills add https://github.com/zeeshanhanif/agentic-sdlc-kit --skill software-architecture
-npx skills add https://github.com/zeeshanhanif/agentic-sdlc-kit --skill ux-foundations
-npx skills add https://github.com/zeeshanhanif/agentic-sdlc-kit --skill implementation-planning
-npx skills add https://github.com/zeeshanhanif/agentic-sdlc-kit --skill project-scaffolding
-npx skills add https://github.com/zeeshanhanif/agentic-sdlc-kit --skill initial-deployment
-npx skills add https://github.com/zeeshanhanif/agentic-sdlc-kit --skill detailed-design
-npx skills add https://github.com/zeeshanhanif/agentic-sdlc-kit --skill ui-design
-npx skills add https://github.com/zeeshanhanif/agentic-sdlc-kit --skill feature-implementation
-npx skills add https://github.com/zeeshanhanif/agentic-sdlc-kit --skill acceptance-verification
-npx skills add https://github.com/zeeshanhanif/agentic-sdlc-kit --skill sdlc-orchestrator
-npx skills add https://github.com/zeeshanhanif/agentic-sdlc-kit --skill pipeline-verify
-```
+Useful flags on `add`:
+
+| Flag | Effect |
+| :--- | :----- |
+| `-g`, `--global` | install user-level (all your projects) instead of project-level |
+| `-a`, `--agent <agents>` | target specific agents; `'*'` for all of them |
+| `-l`, `--list` | list the repo's skills without installing anything |
+| `-y`, `--yes` | skip the confirmation prompts (with no `--skill`, this installs all of them) |
+| `--all` | install every skill to every detected agent, no prompts |
 
 The CLI resolves each skill because it lives at `skills/<name>/SKILL.md` and the
 `--skill` value matches the `name:` in that file's frontmatter. It reads the
