@@ -122,8 +122,8 @@ you want a health check.
 | 8 | [`ui-design`](#ui-design) | loop | technical design, design system, screen inventory | `docs/design-manifest.json`, `ui-design.md` · RTM **Design ref** |
 | 9 | [`feature-implementation`](#feature-implementation) | loop | `tasks.md` + both design halves | **code, tests, commits** — developer-done |
 | 10 | [`acceptance-verification`](#acceptance-verification) | loop | the authoritative documents + the repo | `acceptance-report.md` · RTM **Test ref** |
-| 11 | [`sdlc-orchestrator`](#sdlc-orchestrator) | driver | everything on disk | invocations, routing, `docs/defects.md` |
-| 12 | [`pipeline-verify`](#pipeline-verify) | checker | everything on disk (read-only) | `docs/pipeline-verify-report.md` |
+| 11 | [`sdlc-orchestrator`](#sdlc-orchestrator) | driver | the plan + every feature folder in `docs/` | invocations, routing, `docs/defects.md` |
+| 12 | [`pipeline-verify`](#pipeline-verify) | checker | every pipeline document in `docs/` (read-only) | `docs/pipeline-verify-report.md` |
 
 ---
 
