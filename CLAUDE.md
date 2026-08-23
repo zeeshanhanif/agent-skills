@@ -56,6 +56,11 @@ Skills 1–6 are **one-pass** (linear, run once, in this order). 7–10 are **lo
 skills** (once per feature, forever, in this order). 11 drives the loop; 12 audits
 the seams.
 
+One exception to the ordering: **#6's position is a recommendation, not a gate.**
+`initial-deployment` runs once, any time after scaffolding — on the skeleton,
+mid-loop, or after the plan is built — so nothing downstream may treat it as a
+prerequisite (see §5).
+
 | # | Skill | Reads | Writes | RTM column | Checkpoint |
 | :- | :--- | :--- | :--- | :--- | :--- |
 | 1 | `requirements-engineering` | you | `srs.md`, `use-cases.md`, `rtm.md` | rows + requirement cols | `.requirements-progress.md` |
