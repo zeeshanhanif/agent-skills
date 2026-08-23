@@ -27,18 +27,18 @@ downstream, and no skill invents an ID it can't resolve.
 - [What lands on disk](#what-lands-on-disk)
 - [How twelve skills stay one system](#how-twelve-skills-stay-one-system)
 - **The skills**
-  - [`requirements-engineering`](#requirements-engineering)
-  - [`software-architecture`](#software-architecture)
-  - [`ux-foundations`](#ux-foundations)
-  - [`implementation-planning`](#implementation-planning)
-  - [`project-scaffolding`](#project-scaffolding)
-  - [`initial-deployment`](#initial-deployment)
-  - [`detailed-design`](#detailed-design)
-  - [`ui-design`](#ui-design)
-  - [`feature-implementation`](#feature-implementation)
-  - [`acceptance-verification`](#acceptance-verification)
-  - [`sdlc-orchestrator`](#sdlc-orchestrator)
-  - [`pipeline-verify`](#pipeline-verify)
+  - [Requirements Engineering](#requirements-engineering)
+  - [Software Architecture](#software-architecture)
+  - [UX Foundations](#ux-foundations)
+  - [Implementation Planning](#implementation-planning)
+  - [Project Scaffolding](#project-scaffolding)
+  - [Initial Deployment](#initial-deployment)
+  - [Detailed Design](#detailed-design)
+  - [UI Design](#ui-design)
+  - [Feature Implementation](#feature-implementation)
+  - [Acceptance Verification](#acceptance-verification)
+  - [SDLC Orchestrator](#sdlc-orchestrator)
+  - [Pipeline Verify](#pipeline-verify)
 - [Using a skill standalone](#using-a-skill-standalone)
 - [Right-sizing: do I need all twelve?](#right-sizing-do-i-need-all-twelve)
 - [Contributing](#contributing)
@@ -88,7 +88,7 @@ flowchart TD
     SA --> UX[ux-foundations<br/>ux-foundations · design.md · tokens.json]
     UX --> IP[implementation-planning<br/>implementation-plan · FEAT IDs]
     IP --> PS[project-scaffolding<br/>running repo · walking skeleton]
-    PS -- deploy the skeleton --> DEP[initial-deployment<br/>live environments · CD · ops floor]
+    PS -- deploy: now or after the loop --> DEP[initial-deployment<br/>live environments · CD · ops floor]
     PS --> DD
     DEP --> DD
 
@@ -99,7 +99,8 @@ flowchart TD
 **The linear phase — runs once, in this order:**
 
 `requirements-engineering` → `software-architecture` → `ux-foundations` →
-`implementation-planning` → `project-scaffolding` → *(`initial-deployment`)*
+`implementation-planning` → `project-scaffolding` →
+*(`initial-deployment` — here, or any time later)*
 
 **The loop — runs once per feature, in this order, for the life of the project:**
 
@@ -116,13 +117,13 @@ you want a health check.
 | 3 | [`ux-foundations`](#ux-foundations) | one-pass | SRS, architecture, use cases | `docs/ux-foundations.md`, `docs/design.md`, `docs/tokens.json` |
 | 4 | [`implementation-planning`](#implementation-planning) | one-pass | SRS, use cases, architecture, UX | `docs/implementation-plan.md` (FEAT IDs) · RTM **Plan ref** |
 | 5 | [`project-scaffolding`](#project-scaffolding) | one-pass | architecture, plan, UX trio, SRS | **a running repo** + `docs/scaffold-notes.md` |
-| 6 | [`initial-deployment`](#initial-deployment) | one-pass | architecture, repo deploy artifacts, scaffold notes | **a live system** + `docs/deployment-notes.md` |
+| 6 | [`initial-deployment`](#initial-deployment) | one-pass · any time after scaffolding | architecture, repo deploy artifacts, scaffold notes | **a live system** + `docs/deployment-notes.md` |
 | 7 | [`detailed-design`](#detailed-design) | loop | plan, SRS, use cases, architecture, **the codebase** | `technical-design.md`, `tasks.md` · RTM **Design ref** |
 | 8 | [`ui-design`](#ui-design) | loop | technical design, design system, screen inventory | `docs/design-manifest.json`, `ui-design.md` · RTM **Design ref** |
 | 9 | [`feature-implementation`](#feature-implementation) | loop | `tasks.md` + both design halves | **code, tests, commits** — developer-done |
 | 10 | [`acceptance-verification`](#acceptance-verification) | loop | the authoritative documents + the repo | `acceptance-report.md` · RTM **Test ref** |
-| 11 | [`sdlc-orchestrator`](#sdlc-orchestrator) | driver | everything on disk | invocations, routing, `docs/defects.md` |
-| 12 | [`pipeline-verify`](#pipeline-verify) | checker | everything on disk (read-only) | `docs/pipeline-verify-report.md` |
+| 11 | [`sdlc-orchestrator`](#sdlc-orchestrator) | driver | the plan + every feature folder in `docs/` | invocations, routing, `docs/defects.md` |
+| 12 | [`pipeline-verify`](#pipeline-verify) | checker | every pipeline document in `docs/` (read-only) | `docs/pipeline-verify-report.md` |
 
 ---
 
@@ -264,7 +265,9 @@ The plan's ready — scaffold the repo and stand up the walking skeleton.
 Official generators, wired skeleton, CI, config templates, `AGENTS.md`, and an
 empirical build-and-run verification. Deploy-**ready**, not deployed.
 
-**6. Deploy the skeleton** *(recommended here, supported any time later)*
+**6. Deploy — now, or later.** This step runs **once**, and you choose when: on the
+bare skeleton (here), mid-loop after a few features, or after the whole plan is
+built. It is not a gate on anything downstream.
 
 ```text
 The skeleton's green locally. Let's deploy it and get the environments stood up.
@@ -272,7 +275,13 @@ The skeleton's green locally. Let's deploy it and get the environments stood up.
 
 Provisions from the repo's own deployment artifacts, wires real secrets, extends
 CI to CD, deploys, exercises the skeleton live, and folds in the day-1 operations
-floor.
+floor. Once it has run, CD carries every later push — you don't run it again.
+
+*Deploying here* proves the system deploys before features pile on, and makes
+every later feature continuously deployable. *Deploying later* gives its NFR
+measurement phase more to measure, at the cost of a first push that ships N
+features at once — many more candidate causes when something breaks. Skip ahead
+to step 7 if you'd rather build first.
 
 **7. Then loop, once per feature:**
 
@@ -291,6 +300,10 @@ Run the loop until it hits something that needs me.
 
 It computes the position, invokes the right stage, routes rework back to
 implementation, and pauses on anything that needs a human decision.
+
+**If you skipped step 6, this is the other natural moment for it** — the plan is
+built and nothing is live yet. The orchestrator says so itself when the plan
+completes undeployed, rather than leaving you to remember.
 
 **8. Health-check the documents whenever you want:**
 
@@ -447,7 +460,9 @@ delivery. **Tier 2** is [`pipeline-verify`](#pipeline-verify) — the seams
 
 ---
 
-## `requirements-engineering`
+## Requirements Engineering
+
+`requirements-engineering` · one-pass · writes `docs/srs.md`, `docs/use-cases.md`, `docs/rtm.md`
 
 **The very front of the SDLC** — it runs before architecture and UX, and owns the
 problem space comprehensively. Instead of transcribing what you happen to
@@ -533,7 +548,9 @@ skills/requirements-engineering/
 
 ---
 
-## `software-architecture`
+## Software Architecture
+
+`software-architecture` · one-pass · writes `docs/architecture.md` + ADRs · RTM **Design ref**
 
 Turns a vague *"I want to build X"* into a grounded architecture. Its governing
 principle: **architecture is driven by quality attributes and constraints, not by
@@ -608,7 +625,9 @@ skills/software-architecture/
 
 ---
 
-## `ux-foundations`
+## UX Foundations
+
+`ux-foundations` · one-pass · writes `docs/ux-foundations.md`, `docs/design.md`, `docs/tokens.json`
 
 The **architecture of the UI** — the design-phase sibling to
 `software-architecture`. It reads your SRS and architecture and derives the
@@ -679,7 +698,9 @@ skills/ux-foundations/
 
 ---
 
-## `implementation-planning`
+## Implementation Planning
+
+`implementation-planning` · one-pass · writes `docs/implementation-plan.md` · RTM **Plan ref**
 
 The bridge from design to construction. It reads the **full pipeline** — SRS, use
 cases, architecture, UX foundations — and turns them into a sequenced, executable
@@ -738,7 +759,9 @@ skills/implementation-planning/
 
 ---
 
-## `project-scaffolding`
+## Project Scaffolding
+
+`project-scaffolding` · one-pass · writes the repo + `docs/scaffold-notes.md`
 
 The first skill whose output is a **running system, not a document**. It reads the
 architecture and the plan and turns the walking skeleton into a real repo:
@@ -820,7 +843,9 @@ skills/project-scaffolding/
 
 ---
 
-## `initial-deployment`
+## Initial Deployment
+
+`initial-deployment` · one-pass, any time after scaffolding · writes the live system + `docs/deployment-notes.md`
 
 The last mile scaffolding stopped short of: **deploy-ready → running in the
 cloud.** Scaffolding wrote your deployment configs, environment parameterization,
@@ -907,7 +932,9 @@ skills/initial-deployment/
 
 ---
 
-## `detailed-design`
+## Detailed Design
+
+`detailed-design` · loop, once per feature · writes `technical-design.md`, `tasks.md` · RTM **Design ref**
 
 The first **loop skill** — where the linear pipeline gives way to a per-feature
 construction loop. It runs **once for each vertical slice** as that slice reaches
@@ -970,7 +997,9 @@ skills/detailed-design/
 
 ---
 
-## `ui-design`
+## UI Design
+
+`ui-design` · loop, once per feature · writes `docs/design-manifest.json`, `ui-design.md` · RTM **Design ref**
 
 The **presentation half** of each feature's low-level design — `detailed-design`'s
 loop sibling, but *sequential*: in per-feature mode it consumes that feature's
@@ -1048,7 +1077,9 @@ skills/ui-design/
 
 ---
 
-## `feature-implementation`
+## Feature Implementation
+
+`feature-implementation` · loop, once per feature · writes code, tests, commits
 
 The **construction step** of the loop — where documents become code.
 **`tasks.md` is the program; this skill is the interpreter.** After both design
@@ -1130,7 +1161,9 @@ skills/feature-implementation/
 
 ---
 
-## `acceptance-verification`
+## Acceptance Verification
+
+`acceptance-verification` · loop, once per feature · writes `acceptance-report.md` · RTM **Test ref**
 
 The **independent auditor** that closes the per-feature loop — it turns
 *developer-done* into **verified**. It runs after `feature-implementation`
@@ -1201,7 +1234,9 @@ skills/acceptance-verification/
 
 ---
 
-## `sdlc-orchestrator`
+## SDLC Orchestrator
+
+`sdlc-orchestrator` · driver · writes `docs/defects.md` only
 
 The **loop driver and lifecycle router** — deliberately thin. Every loop skill
 already resolves its own position, keeps its state on disk, and announces rather
@@ -1278,7 +1313,9 @@ skills/sdlc-orchestrator/
 
 ---
 
-## `pipeline-verify`
+## Pipeline Verify
+
+`pipeline-verify` · checker, read-only · writes `docs/pipeline-verify-report.md`
 
 The **cross-document seam checker** — tier 2 of the kit's verification design.
 Tier 1 is built into every stage skill (each verifies its own contract at

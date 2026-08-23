@@ -56,6 +56,11 @@ Skills 1–6 are **one-pass** (linear, run once, in this order). 7–10 are **lo
 skills** (once per feature, forever, in this order). 11 drives the loop; 12 audits
 the seams.
 
+One exception to the ordering: **#6's position is a recommendation, not a gate.**
+`initial-deployment` runs once, any time after scaffolding — on the skeleton,
+mid-loop, or after the plan is built — so nothing downstream may treat it as a
+prerequisite (see §5).
+
 | # | Skill | Reads | Writes | RTM column | Checkpoint |
 | :- | :--- | :--- | :--- | :--- | :--- |
 | 1 | `requirements-engineering` | you | `srs.md`, `use-cases.md`, `rtm.md` | rows + requirement cols | `.requirements-progress.md` |
@@ -68,8 +73,8 @@ the seams.
 | 8 | `ui-design` | that feature's technical-design, design.md, tokens, ux inventory | `design-manifest.json`, `features/FEAT-*/ui-design.md`, `anchor-screens.md` | **Design ref** (append) | — |
 | 9 | `feature-implementation` | `tasks.md` + both design halves + manifest | code, tests, commits | none | `tasks.md` checkboxes |
 | 10 | `acceptance-verification` | authoritative docs + repo | `features/FEAT-*/acceptance-report.md` | **Test ref** (on acceptance) | — |
-| 11 | `sdlc-orchestrator` | everything on disk | `defects.md` only | none | none (computes) |
-| 12 | `pipeline-verify` | everything (read-only) | `pipeline-verify-report.md` (derived) | none | none |
+| 11 | `sdlc-orchestrator` | the plan + every feature folder under `docs/` | `defects.md` only | none | none (computes) |
+| 12 | `pipeline-verify` | every pipeline document under `docs/` (read-only) | `pipeline-verify-report.md` (derived) | none | none |
 
 All paths are under `docs/` in the *user's* project.
 
