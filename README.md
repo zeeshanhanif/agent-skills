@@ -27,18 +27,18 @@ downstream, and no skill invents an ID it can't resolve.
 - [What lands on disk](#what-lands-on-disk)
 - [How twelve skills stay one system](#how-twelve-skills-stay-one-system)
 - **The skills**
-  - [`requirements-engineering`](#requirements-engineering)
-  - [`software-architecture`](#software-architecture)
-  - [`ux-foundations`](#ux-foundations)
-  - [`implementation-planning`](#implementation-planning)
-  - [`project-scaffolding`](#project-scaffolding)
-  - [`initial-deployment`](#initial-deployment)
-  - [`detailed-design`](#detailed-design)
-  - [`ui-design`](#ui-design)
-  - [`feature-implementation`](#feature-implementation)
-  - [`acceptance-verification`](#acceptance-verification)
-  - [`sdlc-orchestrator`](#sdlc-orchestrator)
-  - [`pipeline-verify`](#pipeline-verify)
+  - [Requirements Engineering](#requirements-engineering)
+  - [Software Architecture](#software-architecture)
+  - [UX Foundations](#ux-foundations)
+  - [Implementation Planning](#implementation-planning)
+  - [Project Scaffolding](#project-scaffolding)
+  - [Initial Deployment](#initial-deployment)
+  - [Detailed Design](#detailed-design)
+  - [UI Design](#ui-design)
+  - [Feature Implementation](#feature-implementation)
+  - [Acceptance Verification](#acceptance-verification)
+  - [SDLC Orchestrator](#sdlc-orchestrator)
+  - [Pipeline Verify](#pipeline-verify)
 - [Using a skill standalone](#using-a-skill-standalone)
 - [Right-sizing: do I need all twelve?](#right-sizing-do-i-need-all-twelve)
 - [Contributing](#contributing)
@@ -460,7 +460,9 @@ delivery. **Tier 2** is [`pipeline-verify`](#pipeline-verify) — the seams
 
 ---
 
-## `requirements-engineering`
+## Requirements Engineering
+
+`requirements-engineering` · one-pass · writes `docs/srs.md`, `docs/use-cases.md`, `docs/rtm.md`
 
 **The very front of the SDLC** — it runs before architecture and UX, and owns the
 problem space comprehensively. Instead of transcribing what you happen to
@@ -546,7 +548,9 @@ skills/requirements-engineering/
 
 ---
 
-## `software-architecture`
+## Software Architecture
+
+`software-architecture` · one-pass · writes `docs/architecture.md` + ADRs · RTM **Design ref**
 
 Turns a vague *"I want to build X"* into a grounded architecture. Its governing
 principle: **architecture is driven by quality attributes and constraints, not by
@@ -621,7 +625,9 @@ skills/software-architecture/
 
 ---
 
-## `ux-foundations`
+## UX Foundations
+
+`ux-foundations` · one-pass · writes `docs/ux-foundations.md`, `docs/design.md`, `docs/tokens.json`
 
 The **architecture of the UI** — the design-phase sibling to
 `software-architecture`. It reads your SRS and architecture and derives the
@@ -692,7 +698,9 @@ skills/ux-foundations/
 
 ---
 
-## `implementation-planning`
+## Implementation Planning
+
+`implementation-planning` · one-pass · writes `docs/implementation-plan.md` · RTM **Plan ref**
 
 The bridge from design to construction. It reads the **full pipeline** — SRS, use
 cases, architecture, UX foundations — and turns them into a sequenced, executable
@@ -751,7 +759,9 @@ skills/implementation-planning/
 
 ---
 
-## `project-scaffolding`
+## Project Scaffolding
+
+`project-scaffolding` · one-pass · writes the repo + `docs/scaffold-notes.md`
 
 The first skill whose output is a **running system, not a document**. It reads the
 architecture and the plan and turns the walking skeleton into a real repo:
@@ -833,7 +843,9 @@ skills/project-scaffolding/
 
 ---
 
-## `initial-deployment`
+## Initial Deployment
+
+`initial-deployment` · one-pass, any time after scaffolding · writes the live system + `docs/deployment-notes.md`
 
 The last mile scaffolding stopped short of: **deploy-ready → running in the
 cloud.** Scaffolding wrote your deployment configs, environment parameterization,
@@ -920,7 +932,9 @@ skills/initial-deployment/
 
 ---
 
-## `detailed-design`
+## Detailed Design
+
+`detailed-design` · loop, once per feature · writes `technical-design.md`, `tasks.md` · RTM **Design ref**
 
 The first **loop skill** — where the linear pipeline gives way to a per-feature
 construction loop. It runs **once for each vertical slice** as that slice reaches
@@ -983,7 +997,9 @@ skills/detailed-design/
 
 ---
 
-## `ui-design`
+## UI Design
+
+`ui-design` · loop, once per feature · writes `docs/design-manifest.json`, `ui-design.md` · RTM **Design ref**
 
 The **presentation half** of each feature's low-level design — `detailed-design`'s
 loop sibling, but *sequential*: in per-feature mode it consumes that feature's
@@ -1061,7 +1077,9 @@ skills/ui-design/
 
 ---
 
-## `feature-implementation`
+## Feature Implementation
+
+`feature-implementation` · loop, once per feature · writes code, tests, commits
 
 The **construction step** of the loop — where documents become code.
 **`tasks.md` is the program; this skill is the interpreter.** After both design
@@ -1143,7 +1161,9 @@ skills/feature-implementation/
 
 ---
 
-## `acceptance-verification`
+## Acceptance Verification
+
+`acceptance-verification` · loop, once per feature · writes `acceptance-report.md` · RTM **Test ref**
 
 The **independent auditor** that closes the per-feature loop — it turns
 *developer-done* into **verified**. It runs after `feature-implementation`
@@ -1214,7 +1234,9 @@ skills/acceptance-verification/
 
 ---
 
-## `sdlc-orchestrator`
+## SDLC Orchestrator
+
+`sdlc-orchestrator` · driver · writes `docs/defects.md` only
 
 The **loop driver and lifecycle router** — deliberately thin. Every loop skill
 already resolves its own position, keeps its state on disk, and announces rather
@@ -1291,7 +1313,9 @@ skills/sdlc-orchestrator/
 
 ---
 
-## `pipeline-verify`
+## Pipeline Verify
+
+`pipeline-verify` · checker, read-only · writes `docs/pipeline-verify-report.md`
 
 The **cross-document seam checker** — tier 2 of the kit's verification design.
 Tier 1 is built into every stage skill (each verifies its own contract at
