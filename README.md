@@ -76,25 +76,31 @@ This kit answers that with process, not vibes:
 
 ## The pipeline at a glance
 
+![Agentic SDLC Kit — the pipeline at a glance: requirements engineering, software architecture, UX foundations, implementation planning and project scaffolding run once; detailed design, UI design, feature implementation and acceptance verification repeat once per feature; the SDLC orchestrator drives each cycle, initial deployment runs on demand, and pipeline verify audits the documents at any time.](./agentic-sdlc-kit-workflow.png)
+
+<!--
+Diagram source, kept for maintenance. Not rendered.
+NOTE: arrows are written dotted (-.->) on purpose — an HTML comment closes at the
+first solid arrow, which would leak this block onto the page. Swap the dotted
+arrows for solid ones (and |label| back to -- label --) when reusing this source.
 ```mermaid
 flowchart TD
     subgraph LOOP[Per-feature loop — once per FEAT]
-        DD[detailed-design<br/>technical-design · tasks] --> UD[ui-design<br/>design-manifest · screen specs]
-        UD --> FI[feature-implementation<br/>code · tests · commits]
-        FI --> AV[acceptance-verification<br/>acceptance-report · RTM Test ref]
+        DD[detailed-design<br/>technical-design · tasks] -.-> UD[ui-design<br/>design-manifest · screen specs]
+        UD -.-> FI[feature-implementation<br/>code · tests · commits]
+        FI -.-> AV[acceptance-verification<br/>acceptance-report · RTM Test ref]
     end
-
-    RE[requirements-engineering<br/>srs · use-cases · rtm] --> SA[software-architecture<br/>architecture + ADRs]
-    SA --> UX[ux-foundations<br/>ux-foundations · design.md · tokens.json]
-    UX --> IP[implementation-planning<br/>implementation-plan · FEAT IDs]
-    IP --> PS[project-scaffolding<br/>running repo · walking skeleton]
-    PS -- deploy: now or after the loop --> DEP[initial-deployment<br/>live environments · CD · ops floor]
-    PS --> DD
-    DEP --> DD
-
-    ORCH[sdlc-orchestrator<br/>drives each cycle · routes changes & bugs] -- drives --> DD
+    RE[requirements-engineering<br/>srs · use-cases · rtm] -.-> SA[software-architecture<br/>architecture + ADRs]
+    SA -.-> UX[ux-foundations<br/>ux-foundations · design.md · tokens.json]
+    UX -.-> IP[implementation-planning<br/>implementation-plan · FEAT IDs]
+    IP -.-> PS[project-scaffolding<br/>running repo · walking skeleton]
+    PS -.->|deploy: now or after the loop| DEP[initial-deployment<br/>live environments · CD · ops floor]
+    PS -.-> DD
+    DEP -.-> DD
+    ORCH[sdlc-orchestrator<br/>drives each cycle · routes changes & bugs] -.->|drives| DD
     PV[pipeline-verify<br/>read-only seam checks across every document · run any time]
 ```
+-->
 
 **The linear phase — runs once, in this order:**
 
